@@ -2,10 +2,10 @@
 {% block title %}Sign up{% endblock %}
 {% block content %}
 <h1>Sign up</h1>
-<form method="post" action="{% url 'signup' %}">
+<form method="post" action="{% url 'account_signup' %}">
   {% csrf_token %}
   {{ form.as_p }}
   <button type="submit">Create account</button>
 </form>
-<p>Already have an account? <a href="{% url 'login' %}">Login</a></p>
+<p>Already have an account? <a href="{% url 'account_login' %}">Login</a></p>
 {% endblock %}

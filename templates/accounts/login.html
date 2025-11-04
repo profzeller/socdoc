@@ -1,4 +1,5 @@
 {% extends "_base.html" %}
+{% load socialaccount %}
 {% block title %}Login{% endblock %}
 {% block content %}
 <h1>Login</h1>
@@ -7,12 +8,15 @@
   <p style="color:#b91c1c">Invalid username or password.</p>
 {% endif %}
 
-<form method="post" action="{% url 'login' %}">
+<form method="post" action="{% url 'account_login' %}">
   {% csrf_token %}
   {{ form.as_p }}
-  <input type="hidden" name="next" value="{{ next }}">
   <button type="submit">Login</button>
 </form>
 
-<p>No account? <a href="{% url 'signup' %}">Sign up</a></p>
+<hr>
+<p>Or continue with:</p>
+<p><a href="{% provider_login_url 'discord' %}">Login with Discord</a></p>
+
+<p>No account? <a href="{% url 'account_signup' %}">Sign up</a></p>
 {% endblock %}

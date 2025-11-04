@@ -6,10 +6,7 @@ from django.views.generic import TemplateView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("accounts/login/",  auth_views.LoginView.as_view(template_name="accounts/login.html"), name="login"),
-    path("accounts/logout/", auth_views.LogoutView.as_view(next_page="home"), name="logout"),
-    path("accounts/signup/", SignUpView.as_view(), name="signup"),
-
+    path("accounts/", include("allauth.urls")),  # allauth routes (login, logout, signup, social)
     path("markdownx/", include("markdownx.urls")),
     path("docs/", include("docs.urls")),
     path("policies/", include("policies.urls")),

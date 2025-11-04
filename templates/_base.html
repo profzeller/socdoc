@@ -16,20 +16,19 @@
   <a href="/diagrams/">Diagrams</a>
   <a href="/grading/">Grading</a>
     <span style="margin-left:auto">
-      {% if request.user.is_authenticated %}
-        <span class="pill">{{ request.user.username }}</span>
-        {% if CURRENT_TEAM %}
-            <span class="pill" style="background:#334155">{{ CURRENT_TEAM.name }}</span>
+        {% if user.is_authenticated %}
+            {% if CURRENT_TEAM %}
+                <span class="pill" style="background:#334155">{{ CURRENT_TEAM.name }}</span>
+            {% endif %}
+            <form method="post" action="{% url 'account_logout' %}" style="display:inline">
+              {% csrf_token %}
+              <button type="submit" style="background:none;border:none;color:#fff;cursor:pointer;padding:0;margin-left:.5rem;">
+                Logout
+              </button>
+            </form>
+        {% else %}
+            <a href="{% url 'account_login' %}">Login</a>
         {% endif %}
-        <form method="post" action="{% url 'logout' %}" style="display:inline">
-          {% csrf_token %}
-          <button type="submit" style="background:none;border:none;color:#fff;cursor:pointer;padding:0;margin-left:.5rem;">
-            Logout
-          </button>
-        </form>
-      {% else %}
-        <a href="{% url 'login' %}">Login</a>
-      {% endif %}
     </span>
 </nav>
 <div class="wrap">
