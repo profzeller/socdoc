@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Milestone, Criterion, Submission, Evidence, CriterionScore
+from .models import Team, Milestone, Criterion, Submission, Evidence, CriterionScore
 
 class CriterionInline(admin.TabularInline):
     model = Criterion
@@ -24,3 +24,8 @@ class SubmissionAdmin(admin.ModelAdmin):
     list_filter = ("graded","milestone")
     search_fields = ("student__username","milestone__title")
     inlines = [EvidenceInline, CriterionScoreInline]
+
+@admin.register(Team)
+class TeamAdmin(admin.ModelAdmin):
+    list_display = ("name",)
+    filter_horizontal = ("members",)

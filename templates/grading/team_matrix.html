@@ -1,0 +1,28 @@
+{% extends "_base.html" %}
+{% block title %}Team Progress{% endblock %}
+{% block content %}
+<h1>Team Progress</h1>
+<table border="1" cellpadding="6">
+  <tr>
+    <th>Team</th>
+    {% for m in milestones %}<th>{{ m.title }}</th>{% endfor %}
+  </tr>
+  {% for t in teams %}
+    <tr>
+      <td>{{ t.name }}</td>
+      {% for m in milestones %}
+        <td>
+          {% with avg=grid.t.id.m.id %}{% endwith %}
+          {% if grid[t.id][m.id] %}
+            {{ grid[t.id][m.id]|floatformat:1 }} / {{ m.max_points }}
+          {% else %}
+            —
+          {% endif %}
+        </td>
+      {% endfor %}
+    </tr>
+  {% empty %}
+    <tr><td colspan="{{ milestones|length|add:1 }}">No teams yet.</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}

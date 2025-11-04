@@ -3,8 +3,10 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 import csv
+from django.contrib.admin.views.decorators import staff_member_required
+from django.db.models import Avg
 
-from .models import Milestone, Submission, Evidence  # ← your grading models
+from .models import Milestone, Submission, Evidence, Team  # ← your grading models
 
 # ----- Forms -----
 class SubmissionForm(forms.ModelForm):
@@ -65,6 +67,12 @@ def submit_work(request):
                 ev.submission = sub
                 ev.save()
 
+            if not sub.team:
+                user_teams = request.user.teams.all()
+                if user_teams.exists():
+                    sub.team = user_teams.first()
+                    sub.save()
+
             return redirect("grading:list")
     else:
         sform = SubmissionForm()
@@ -87,3 +95,17 @@ def export_csv(request):
         w.writerow([s.student.username, s.milestone.title, s.score, s.graded, s.submitted_at])
 
     return resp
+
+@staff_member_required
+def team_matrix(request):
+    teams = Team.objects.all().order_by("name")
+    milestones = Milestone.objects.all().order_by("title")
+    # average score per (team, milestone)
+    grid = {}
+    for t in teams:
+        row = {}
+        for m in milestones:
+            avg = Submission.objects.filter(team=t, milestone=m, graded=True).aggregate(Avg("score"))["score__avg"]
+            row[m.id] = avg
+        grid[t.id] = row
+    return render(request, "grading/team_matrix.html", {"teams": teams, "milestones": milestones, "grid": grid})

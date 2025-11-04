@@ -5,6 +5,11 @@
 <p><a href="{% url 'docs:new' %}">New Page</a></p>
 
 <h2>Published</h2>
+<p>
+  <a href="{% url 'docs:new' %}">New Page</a>
+  {% if CURRENT_TEAM %} • <a href="?team={{ CURRENT_TEAM.name }}">My Team</a>{% endif %}
+</p>
+
 <ul>
   {% for p in pages %}
     <li><a href="{% url 'docs:detail' p.slug %}">{{ p.title }}</a> — {{ p.milestone }}</li>

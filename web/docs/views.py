@@ -10,11 +10,16 @@ class DocForm(ModelForm):
         fields = ["title","slug","content","milestone"]
 
 def page_list(request):
-    pages = DocPage.objects.filter(approved=True).order_by("title")
+    qs = DocPage.objects.filter(approved=True).order_by("title")
+    team_name = request.GET.get("team")
+    if team_name and request.user.is_authenticated:
+        if request.user.teams.filter(name=team_name).exists():
+            qs = qs.filter(author__in=request.user.teams.get(name=team_name).members.all())
     drafts = []
     if request.user.is_authenticated:
         drafts = DocPage.objects.filter(author=request.user, approved=False).order_by("-updated_at")
-    return render(request, "docs/list.html", {"pages": pages, "drafts": drafts})
+    return render(request, "docs/list.html", {"pages": qs, "drafts": drafts})
+
 
 def page_detail(request, slug):
     page = get_object_or_404(DocPage, slug=slug)
