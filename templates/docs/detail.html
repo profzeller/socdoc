@@ -1,0 +1,8 @@
+<h1>{{ page.title }}</h1>
+{% if not page.approved %}
+  <p style="padding:.5rem 1rem;background:#fff7ed;border:1px solid #fdba74;border-radius:.5rem;">
+    Pending approval — only you and instructors can see this.
+  </p>
+{% endif %}
+<article>{{ page.html|safe }}</article>
+<p><a href="{% url 'docs:list' %}">← Back</a></p>

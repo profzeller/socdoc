@@ -1,0 +1,18 @@
+<h1>Documentation</h1>
+<p><a href="/docs/new/">New Page</a></p>
+
+<h2>Published</h2>
+<ul>
+  {% for p in pages %}
+    <li><a href="{% url 'docs:detail' p.slug %}">{{ p.title }}</a> — {{ p.milestone }}</li>
+  {% empty %}<li>No published pages yet.</li>{% endfor %}
+</ul>
+
+{% if request.user.is_authenticated %}
+<h2>My Drafts</h2>
+<ul>
+  {% for d in drafts %}
+    <li><a href="{% url 'docs:detail' d.slug %}">{{ d.title }}</a> — {{ d.updated_at }}</li>
+  {% empty %}<li>No drafts.</li>{% endfor %}
+</ul>
+{% endif %}
