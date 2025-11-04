@@ -1,0 +1,30 @@
+<!doctype html><html><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{% block title %}SOC Docs{% endblock %}</title>
+<style>
+  body{font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;margin:0}
+  nav{display:flex;gap:1rem;align-items:center;padding:.75rem 1rem;background:#0f172a;color:#fff}
+  nav a{color:#fff;text-decoration:none}
+  .wrap{max-width:960px;margin:1.25rem auto;padding:0 1rem}
+  .pill{background:#1e293b;color:#fff;padding:.25rem .5rem;border-radius:.5rem}
+</style>
+</head><body>
+<nav>
+  <a href="/">SOC Docs</a>
+  <a href="/docs/">Docs</a>
+  <a href="/policies/">Policies</a>
+  <a href="/diagrams/">Diagrams</a>
+  <a href="/grading/">Grading</a>
+  <span style="margin-left:auto">
+    {% if request.user.is_authenticated %}
+      <span class="pill">{{ request.user.username }}</span>
+      <a href="{% url 'logout' %}">Logout</a>
+    {% else %}
+      <a href="{% url 'login' %}">Login</a>
+    {% endif %}
+  </span>
+</nav>
+<div class="wrap">
+  {% block content %}{% endblock %}
+</div>
+</body></html>

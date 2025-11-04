@@ -20,6 +20,7 @@ INSTALLED_APPS = [
     "policies",
     "diagrams",
     "grading",
+    "accounts",
 ]
 
 MIDDLEWARE = [

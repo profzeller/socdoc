@@ -1,23 +1,6 @@
-<!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <title>SOC Docs — Home</title>
-    <style>
-      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 2rem; }
-      .box { border: 1px solid #e5e7eb; border-radius: .75rem; padding: 1rem 1.25rem; max-width: 800px; }
-    </style>
-  </head>
-  <body>
-    <div class="box">
-      <h1>SOC Docs Portal</h1>
-      <p>Site is alive. Next we’ll add feature apps (Docs, Policies, Diagrams, Grading, Integrations).</p>
-      <p>
-        <a href="/docs/">Docs</a> •
-        <a href="/policies/">Policies</a> •
-        <a href="/diagrams/">Diagrams</a>
-      </p>
-    </div>
-  </body>
-</html>
+{% extends "_base.html" %}
+{% block title %}SOC Docs — Home{% endblock %}
+{% block content %}
+<h1>Welcome</h1>
+<p>Use the nav to access Docs, Policies, Diagrams, and Grading.</p>
+{% endblock %}
