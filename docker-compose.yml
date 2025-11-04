@@ -25,6 +25,19 @@ services:
     volumes:
       - ./web:/app
       - ./templates:/app/templates
+      - ./media:/app/media
+    environment:
+      - DATABASE_URL=postgres://socuser:socpass@db:5432/socdocs
+
+  fossflow:
+    image: stnsmith/fossflow:latest
+    container_name: fossflow
+    restart: unless-stopped
+    ports:
+      - "8090:80"     # fossflow serves HTTP on 80 in this image
+    volumes:
+      - fossflow_data:/data
 
 volumes:
   pgdata:
+  fossflow_data:

@@ -1,0 +1,18 @@
+<h1>Diagrams</h1>
+<p>
+  <a href="/diagrams/new/">New Diagram</a> |
+  Open FossFlow: <a href="http://localhost:8090" target="_blank">http://localhost:8090</a>
+</p>
+
+<ul>
+  {% for d in items %}
+    <li>
+      <a href="{% url 'diagrams:detail' d.pk %}">{{ d.title }}</a>
+      {% if d.fossflow_url %} — <a href="{{ d.fossflow_url }}" target="_blank">open in FossFlow</a>{% endif %}
+    </li>
+  {% empty %}
+    <li>No diagrams yet.</li>
+  {% endfor %}
+</ul>
+
+<p><a href="/">← Home</a></p>

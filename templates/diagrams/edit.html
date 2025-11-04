@@ -1,0 +1,7 @@
+<h1>New Diagram</h1>
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <p>Tip: Build in FossFlow first, paste its URL here, or upload a PNG/SVG export.</p>
+  <button type="submit">Save</button>
+</form>

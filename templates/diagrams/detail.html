@@ -1,0 +1,16 @@
+<h1>{{ d.title }}</h1>
+<p>By {{ d.owner.username }} on {{ d.created_at }}</p>
+{% if d.fossflow_url %}
+  <p><a href="{{ d.fossflow_url }}" target="_blank">Open in FossFlow</a></p>
+  <iframe src="{{ d.fossflow_url }}" style="width:100%;height:70vh;border:1px solid #e5e7eb;border-radius:.5rem;"></iframe>
+{% endif %}
+
+{% if d.image %}
+  <p><img src="{{ d.image.url }}" alt="{{ d.title }}" style="max-width:100%;height:auto;border:1px solid #e5e7eb;border-radius:.5rem;"></p>
+{% endif %}
+
+{% if d.notes %}
+  <pre style="white-space:pre-wrap">{{ d.notes }}</pre>
+{% endif %}
+
+<p><a href="{% url 'diagrams:list' %}">← Back</a></p>

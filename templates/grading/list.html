@@ -1,0 +1,19 @@
+<h1>Project Milestones</h1>
+<p><a href="/grading/submit/">Submit Work</a> • <a href="/grading/scores/">View Scores</a></p>
+
+<ul>
+  {% for m in milestones %}
+    <li>
+      <strong>{{ m.title }}</strong> — Due: {{ m.due_date }} ({{ m.max_points }} pts)
+      {% if m.id in submitted_ids %}
+        ✅ Submitted
+      {% else %}
+        ❌ Not yet submitted
+      {% endif %}
+    </li>
+  {% empty %}
+    <li>No milestones defined yet.</li>
+  {% endfor %}
+</ul>
+
+<p><a href="/">← Home</a></p>
