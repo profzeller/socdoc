@@ -15,14 +15,19 @@
   <a href="/policies/">Policies</a>
   <a href="/diagrams/">Diagrams</a>
   <a href="/grading/">Grading</a>
-  <span style="margin-left:auto">
-    {% if request.user.is_authenticated %}
-      <span class="pill">{{ request.user.username }}</span>
-      <a href="{% url 'logout' %}">Logout</a>
-    {% else %}
-      <a href="{% url 'login' %}">Login</a>
-    {% endif %}
-  </span>
+    <span style="margin-left:auto">
+      {% if request.user.is_authenticated %}
+        <span class="pill">{{ request.user.username }}</span>
+        <form method="post" action="{% url 'logout' %}" style="display:inline">
+          {% csrf_token %}
+          <button type="submit" style="background:none;border:none;color:#fff;cursor:pointer;padding:0;margin-left:.5rem;">
+            Logout
+          </button>
+        </form>
+      {% else %}
+        <a href="{% url 'login' %}">Login</a>
+      {% endif %}
+    </span>
 </nav>
 <div class="wrap">
   {% block content %}{% endblock %}
