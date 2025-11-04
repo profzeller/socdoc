@@ -1,0 +1,11 @@
+<h1>{{ policy.title }}</h1>
+<p><strong>Category:</strong> {{ policy.get_category_display }} • <strong>Version:</strong> {{ policy.version }}</p>
+
+{% if not policy.approved %}
+  <p style="padding:.5rem 1rem;background:#fff7ed;border:1px solid #fdba74;border-radius:.5rem;">
+    Pending approval — only you and instructors can see this.
+  </p>
+{% endif %}
+
+<article>{{ policy.html|safe }}</article>
+<p><a href="{% url 'policies:list' %}">← Back</a></p>
