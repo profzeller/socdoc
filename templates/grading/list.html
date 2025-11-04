@@ -1,19 +1,20 @@
-<h1>Project Milestones</h1>
-<p><a href="/grading/submit/">Submit Work</a> • <a href="/grading/scores/">View Scores</a></p>
-
+{% extends "_base.html" %}
+{% block title %}Grading{% endblock %}
+{% block content %}
+<h1>Milestones</h1>
 <ul>
   {% for m in milestones %}
     <li>
-      <strong>{{ m.title }}</strong> — Due: {{ m.due_date }} ({{ m.max_points }} pts)
+      {{ m.title }}
       {% if m.id in submitted_ids %}
         ✅ Submitted
       {% else %}
-        ❌ Not yet submitted
+        <a href="{% url 'grading:submit' %}?milestone={{ m.id }}">Submit</a>
       {% endif %}
     </li>
-  {% empty %}
-    <li>No milestones defined yet.</li>
   {% endfor %}
 </ul>
-
-<p><a href="/">← Home</a></p>
+{% if request.user.is_staff %}
+  <p><a href="{% url 'grading:export' %}">Export CSV</a></p>
+{% endif %}
+{% endblock %}

@@ -1,24 +1,13 @@
-<h1>Policies & Procedures</h1>
-<p><a href="/policies/new/">New Policy</a></p>
-
-{% for cat, items in grouped.items %}
-  <h2>{{ cat }}</h2>
-  <ul>
-    {% for p in items %}
-      <li><a href="{% url 'policies:detail' p.slug %}">{{ p.title }}</a> — v{{ p.version }}</li>
-    {% endfor %}
-  </ul>
-{% empty %}
-  <p>No published policies yet.</p>
-{% endfor %}
-
-{% if request.user.is_authenticated %}
-  <h2>My Drafts</h2>
-  <ul>
-    {% for d in drafts %}
-      <li><a href="{% url 'policies:detail' d.slug %}">{{ d.title }}</a> — v{{ d.version }} — {{ d.updated_at }}</li>
-    {% empty %}
-      <li>No drafts.</li>
-    {% endfor %}
-  </ul>
-{% endif %}
+{% extends "_base.html" %}
+{% block title %}Policies{% endblock %}
+{% block content %}
+<h1>Policies</h1>
+<ul>
+  {% for policy in policies %}
+    <li><a href="{% url 'policies:detail' policy.slug %}">{{ policy.title }}</a></li>
+  {% empty %}
+    <li>No policies created yet.</li>
+  {% endfor %}
+</ul>
+<p><a href="{% url 'policies:new' %}">Add Policy</a></p>
+{% endblock %}
