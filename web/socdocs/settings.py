@@ -21,6 +21,7 @@ INSTALLED_APPS = [
     "diagrams",
     "grading",
     "accounts",
+    "moderation",
 ]
 
 MIDDLEWARE = [

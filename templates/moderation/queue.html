@@ -1,0 +1,26 @@
+{% extends "_base.html" %}
+{% block content %}
+<h1>Moderation Queue</h1>
+
+<h2>Doc Drafts</h2>
+<ul>
+  {% for d in doc_drafts %}
+    <li>
+      <a href="{% url 'docs:detail' d.slug %}">{{ d.title }}</a>
+      — by {{ d.author.username }} — {{ d.updated_at }}
+      <a class="pill" href="{% url 'moderation:approve_doc' d.id %}">Approve</a>
+    </li>
+  {% empty %}<li>No doc drafts.</li>{% endfor %}
+</ul>
+
+<h2>Policy Drafts</h2>
+<ul>
+  {% for p in pol_drafts %}
+    <li>
+      <a href="{% url 'policies:detail' p.slug %}">{{ p.title }}</a>
+      — by {{ p.owner.username|default:"(unknown)" }} — {{ p.updated_at }}
+      <a class="pill" href="{% url 'moderation:approve_policy' p.id %}">Approve</a>
+    </li>
+  {% empty %}<li>No policy drafts.</li>{% endfor %}
+</ul>
+{% endblock %}

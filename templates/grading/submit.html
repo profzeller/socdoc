@@ -1,6 +1,14 @@
 <h1>Submit Work</h1>
-<form method="post">
+<form method="post" enctype="multipart/form-data">
   {% csrf_token %}
-  {{ form.as_p }}
+  <fieldset>
+    <legend>Submission</legend>
+    {{ form.as_p }}
+  </fieldset>
+  <fieldset>
+    <legend>Attach Evidence (optional)</legend>
+    {{ eform.as_p }}
+  </fieldset>
   <button type="submit">Submit</button>
 </form>
+<p><a href="{% url 'grading:list' %}">← Back</a></p>
