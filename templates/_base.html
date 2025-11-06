@@ -4,30 +4,62 @@
   <meta charset="UTF-8">
   <title>{% block title %}SOC Docs{% endblock %}</title>
   <link rel="stylesheet" href="/static/admin/css/base.css">
+  <link rel="stylesheet" href="/static/css/app.css">
 </head>
 <body>
-  <nav style="background:#1e293b;padding:0.5rem 1rem;color:#fff;">
-    <a href="/" style="color:white;font-weight:bold;text-decoration:none;margin-right:1rem;">SOC Docs</a>
-    <a href="/docs/" style="color:white;margin-right:0.75rem;">Docs</a>
-    <a href="/policies/" style="color:white;margin-right:0.75rem;">Policies</a>
-    <a href="/diagrams/" style="color:white;margin-right:0.75rem;">Diagrams</a>
-    <a href="/grading/" style="color:white;margin-right:0.75rem;">Grading</a>
-    <span style="float:right;">
+  <nav class="navbar">
+    <div class="nav-left">
+      <a href="/" class="brand">SOC Docs</a>
+      <a href="/docs/">Docs</a>
+      <a href="/policies/">Policies</a>
+      <a href="/diagrams/">Diagrams</a>
+      {% if user.is_staff %}
+        <a href="/moderation/">Moderation</a>
+        <a href="/grading/">Grading</a>
+      {% endif %}
+    </div>
+
+    <div class="nav-right">
+        <button id="theme-toggle" class="theme-toggle" title="Toggle dark mode">🌓</button>
       {% if user.is_authenticated %}
-        {% if CURRENT_TEAM %}
-          <span style="background:#334155;border-radius:4px;padding:2px 6px;margin-right:0.5rem;">{{ CURRENT_TEAM.name }}</span>
+        {% if user.profile and user.profile.team %}
+          <span class="team-pill">{{ user.profile.team.name }}</span>
+        {% elif CURRENT_TEAM %}
+          <span class="team-pill">{{ CURRENT_TEAM.name }}</span>
         {% endif %}
-        <form method="post" action="{% url 'account_logout' %}" style="display:inline">
+        <a href="{% url 'accounts:profile' %}">Profile/Teams</a>
+        <form method="post" action="{% url 'account_logout' %}" class="logout-form">
           {% csrf_token %}
-          <button type="submit" style="background:none;border:none;color:#fff;cursor:pointer;">Logout</button>
+          <button type="submit" class="logout-btn">Logout</button>
         </form>
       {% else %}
-        <a href="{% url 'account_login' %}" style="color:white;">Login</a>
+        <a href="{% url 'account_login' %}">Login</a>
       {% endif %}
-    </span>
+    </div>
   </nav>
-  <main style="padding:1rem;">
+
+  <main class="page-content">
     {% block content %}{% endblock %}
   </main>
+
+  <script>
+    // Theme persistence + toggle logic
+    const toggle = document.getElementById('theme-toggle');
+    const body = document.body;
+
+    // Load saved theme or system preference
+    const saved = localStorage.getItem('theme');
+    if (saved) {
+      body.className = saved;
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      body.className = 'dark';
+    }
+
+    toggle.addEventListener('click', () => {
+      const newTheme = body.classList.contains('dark') ? 'light' : 'dark';
+      body.className = newTheme;
+      localStorage.setItem('theme', newTheme);
+    });
+  </script>
 </body>
 </html>

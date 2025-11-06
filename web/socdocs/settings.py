@@ -33,7 +33,7 @@ INSTALLED_APPS = [
     "policies",
     "diagrams",
     "grading",
-    "accounts",
+    "accounts.apps.AccountsConfig",
     "moderation",
 ]
 
@@ -43,11 +43,18 @@ MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
+
+    # must come before our gate so request.user exists
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "allauth.account.middleware.AccountMiddleware",
+
+    # now gate
+    "accounts.middleware.ClassCodeGateMiddleware",
+
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
 
 ROOT_URLCONF = "socdocs.urls"
 
@@ -94,6 +101,7 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = "/static/"
+STATICFILES_DIRS = [BASE_DIR / "static"]  # so Django finds /static/css/app.css
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
@@ -122,3 +130,4 @@ CLASS_ENROLL_CODE = os.getenv("CLASS_ENROLL_CODE", "")
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_AUTHENTICATION_METHOD = "email"
 SOCIALACCOUNT_LOGIN_ON_GET = True
+SOCIALACCOUNT_ADAPTER = "accounts.adapters.MySocialAdapter"

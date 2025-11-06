@@ -1,22 +1,25 @@
-from allauth.account.forms import SignupForm
 from django import forms
 from django.conf import settings
+from .models import Team, ClassCode
 
-class ClassCodeSignupForm(SignupForm):
-    class_code = forms.CharField(
-        label="Class Code",
-        max_length=64,
-        help_text="Ask your instructor for the current class code.",
-    )
+class EnrollCodeForm(forms.Form):
+    code = forms.CharField(label="Class Code", max_length=64)
 
-    def clean_class_code(self):
-        code = self.cleaned_data.get("class_code", "").strip()
-        expected = getattr(settings, "CLASS_ENROLL_CODE", "").strip()
-        if not expected:
-            # If you forgot to set it, fail closed so the internet can't register
-            raise forms.ValidationError("Class enrollment is currently closed.")
-        if code != expected:
-            raise forms.ValidationError("Invalid class code.")
-        return code
+    def clean_code(self):
+        code = self.cleaned_data["code"].strip()
+        # Accept from DB if using ClassCode table
+        if ClassCode.objects.filter(code=code, active=True).exists():
+            return code
+        # Or fallback to single env var
+        expected = getattr(settings, "CLASS_ENROLL_CODE", "")
+        if expected and code == expected:
+            return code
+        raise forms.ValidationError("Invalid class code.")
 
-    # If you want to auto-add users to a default group/team, you can override save() later.
+class CreateTeamForm(forms.ModelForm):
+    class Meta:
+        model = Team
+        fields = ["name"]
+
+class JoinTeamForm(forms.Form):
+    join_code = forms.CharField(max_length=32, label="Team Join Code")
