@@ -6,7 +6,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev")
 DEBUG = os.getenv("DJANGO_DEBUG", "True") == "True"
-ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "*").split(",")
+#ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "*").split(",")
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "*"]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -53,15 +54,17 @@ ROOT_URLCONF = "socdocs.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "templates"],   # <-- change from BASE_DIR.parent / "templates"
+        "DIRS": [BASE_DIR / "templates"],   # now correct, since templates is inside /web
         "APP_DIRS": True,
-        "OPTIONS": { "context_processors": [
-            "django.template.context_processors.debug",
-            "django.template.context_processors.request",
-            "django.contrib.auth.context_processors.auth",
-            "django.contrib.messages.context_processors.messages",
-            "socdocs.context.team_badge",
-        ]},
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
+                "socdocs.context.team_badge",
+            ],
+        },
     },
 ]
 
@@ -110,10 +113,12 @@ LOGIN_REDIRECT_URL = "/"
 ACCOUNT_LOGOUT_ON_GET = True           # so your navbar link just works
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_EMAIL_VERIFICATION = "none"    # set to "mandatory" later if you want
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = "http"   # use "https" in prod
 
 # Use our custom signup form (adds Class Code)
 ACCOUNT_FORMS = {"signup": "accounts.forms.ClassCodeSignupForm"}
-
-# Class code from environment
-import os
 CLASS_ENROLL_CODE = os.getenv("CLASS_ENROLL_CODE", "")
+
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_AUTHENTICATION_METHOD = "email"
+SOCIALACCOUNT_LOGIN_ON_GET = True

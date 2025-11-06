@@ -1,37 +1,33 @@
-<!doctype html><html><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{% block title %}SOC Docs{% endblock %}</title>
-<style>
-  body{font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;margin:0}
-  nav{display:flex;gap:1rem;align-items:center;padding:.75rem 1rem;background:#0f172a;color:#fff}
-  nav a{color:#fff;text-decoration:none}
-  .wrap{max-width:960px;margin:1.25rem auto;padding:0 1rem}
-  .pill{background:#1e293b;color:#fff;padding:.25rem .5rem;border-radius:.5rem}
-</style>
-</head><body>
-<nav>
-  <a href="/">SOC Docs</a>
-  <a href="/docs/">Docs</a>
-  <a href="/policies/">Policies</a>
-  <a href="/diagrams/">Diagrams</a>
-  <a href="/grading/">Grading</a>
-    <span style="margin-left:auto">
-        {% if user.is_authenticated %}
-            {% if CURRENT_TEAM %}
-                <span class="pill" style="background:#334155">{{ CURRENT_TEAM.name }}</span>
-            {% endif %}
-            <form method="post" action="{% url 'account_logout' %}" style="display:inline">
-              {% csrf_token %}
-              <button type="submit" style="background:none;border:none;color:#fff;cursor:pointer;padding:0;margin-left:.5rem;">
-                Logout
-              </button>
-            </form>
-        {% else %}
-            <a href="{% url 'account_login' %}">Login</a>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %}SOC Docs{% endblock %}</title>
+  <link rel="stylesheet" href="/static/admin/css/base.css">
+</head>
+<body>
+  <nav style="background:#1e293b;padding:0.5rem 1rem;color:#fff;">
+    <a href="/" style="color:white;font-weight:bold;text-decoration:none;margin-right:1rem;">SOC Docs</a>
+    <a href="/docs/" style="color:white;margin-right:0.75rem;">Docs</a>
+    <a href="/policies/" style="color:white;margin-right:0.75rem;">Policies</a>
+    <a href="/diagrams/" style="color:white;margin-right:0.75rem;">Diagrams</a>
+    <a href="/grading/" style="color:white;margin-right:0.75rem;">Grading</a>
+    <span style="float:right;">
+      {% if user.is_authenticated %}
+        {% if CURRENT_TEAM %}
+          <span style="background:#334155;border-radius:4px;padding:2px 6px;margin-right:0.5rem;">{{ CURRENT_TEAM.name }}</span>
         {% endif %}
+        <form method="post" action="{% url 'account_logout' %}" style="display:inline">
+          {% csrf_token %}
+          <button type="submit" style="background:none;border:none;color:#fff;cursor:pointer;">Logout</button>
+        </form>
+      {% else %}
+        <a href="{% url 'account_login' %}" style="color:white;">Login</a>
+      {% endif %}
     </span>
-</nav>
-<div class="wrap">
-  {% block content %}{% endblock %}
-</div>
-</body></html>
+  </nav>
+  <main style="padding:1rem;">
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>
