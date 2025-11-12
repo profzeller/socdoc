@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <title>{% block title %}SOC Docs{% endblock %}</title>
-  <link rel="stylesheet" href="/static/admin/css/base.css">
   <link rel="stylesheet" href="/static/css/app.css">
 </head>
 <body>
@@ -20,35 +19,38 @@
     </div>
 
     <div class="nav-right">
-      <button id="theme-toggle" class="theme-toggle" title="Toggle dark mode">🌓</button>
+  <button id="theme-toggle" class="theme-toggle" title="Toggle dark mode">🌓</button>
 
-      {% if user.is_authenticated %}
-        {% if user.profile and user.profile.team %}
-          <span class="team-pill">{{ user.profile.team.name }}</span>
-        {% elif CURRENT_TEAM %}
-          <span class="team-pill">{{ CURRENT_TEAM.name }}</span>
+  {% if user.is_authenticated %}
+    {% if user.profile and user.profile.team %}
+      <span class="team-pill">{{ user.profile.team.name }}</span>
+    {% elif CURRENT_TEAM %}
+      <span class="team-pill">{{ CURRENT_TEAM.name }}</span>
+    {% endif %}
+
+    <!-- User identity: avatar + username -->
+    <a href="{% url 'accounts:profile' %}" class="user-link" title="Profile / Teams">
+      {% with sa=user.socialaccount_set.first %}
+        {% if sa %}
+          <img class="avatar" src="{{ sa.get_avatar_url }}" alt="avatar">
+        {% else %}
+          <span class="avatar avatar-fallback">
+            {{ user.get_username|first|upper }}
+          </span>
         {% endif %}
+      {% endwith %}
+      <span class="username">{{ user.get_username }}</span>
+    </a>
 
-        <!-- User identity: avatar (if available) + username -->
-        <a href="{% url 'accounts:profile' %}" class="user-link" title="Profile / Teams">
-          {% with sa=user.socialaccount_set.first %}
-            {% if sa and sa.extra_data and sa.extra_data.avatar %}
-              <img class="avatar" src="{{ sa.extra_data.avatar }}" alt="avatar">
-            {% else %}
-              <span class="avatar avatar-fallback">{{ user.get_username|first|upper }}</span>
-            {% endif %}
-          {% endwith %}
-          <span class="username">{{ user.get_username }}</span>
-        </a>
+    <form method="post" action="{% url 'account_logout' %}" class="logout-form">
+      {% csrf_token %}
+      <button type="submit" class="logout-btn">Logout</button>
+    </form>
+  {% else %}
+    <a href="{% url 'account_login' %}">Login</a>
+  {% endif %}
+</div>
 
-        <form method="post" action="{% url 'account_logout' %}" class="logout-form">
-          {% csrf_token %}
-          <button type="submit" class="logout-btn">Logout</button>
-        </form>
-      {% else %}
-        <a href="{% url 'account_login' %}">Login</a>
-      {% endif %}
-    </div>
   </nav>
 
   <main class="page-content">

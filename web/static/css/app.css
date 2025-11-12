@@ -62,8 +62,13 @@ body {
 }
 
 /* Right side uses gap instead of per-link margins for crisp spacing */
-.nav-right { gap: 0.75rem; }
-.nav-right a { margin-right: 0; } /* avoid double spacing when inside .nav-right */
+.nav-right {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;               /* consistent spacing */
+}
+.nav-right a { margin-right: 0; }
 
 .brand { font-weight: bold; margin-right: 1rem; }
 
@@ -122,7 +127,11 @@ body {
 .username { font-weight: 600; }
 
 /* Logout button styled like a link chip */
-.logout-form { display: inline; }
+.logout-form {
+  display: inline;            /* already there is fine */
+  margin: 0;                  /* <-- ensure no default margin */
+}
+
 .logout-btn {
   background: none;
   border: 1px solid transparent;
@@ -131,8 +140,11 @@ body {
   font-size: 1rem;
   padding: 2px 6px;
   border-radius: 6px;
+  margin: 0;                  /* <-- remove left/right margins */
 }
-.logout-btn:hover { background: rgba(148,163,184,0.15); }
+.logout-btn:hover {
+  background: rgba(148,163,184,0.15);
+}
 
 /* Page layout */
 .page-content {
@@ -209,20 +221,82 @@ a:hover { color: var(--link-hover); text-decoration: underline; }
 .auth-details[open] summary::after { content: " ▴"; opacity: .7; }
 .details-body { margin-top: 1rem; }
 
-/* Discord button */
+/* ======================================
+   Discord Primary Sign-In Button
+====================================== */
 .btn-discord {
-  display: block;
-  text-align: center;
-  background: #5865F2;       /* Discord blurple */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  width: 100%;
+  max-width: 400px;
+  margin: 1.5rem auto;
+  background-color: #5865F2; /* Discord blurple */
   color: #fff;
-  padding: .75rem 1rem;
-  border-radius: .5rem;
-  text-decoration: none;
   font-weight: 600;
-  transition: filter .15s ease, transform .02s ease;
+  padding: 1rem 1.25rem;
+  border-radius: 0.6rem;
+  text-decoration: none;
+  font-size: 1.05rem;
+  line-height: 1.2;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: transform 0.1s ease, filter 0.15s ease, box-shadow 0.2s ease;
 }
-.btn-discord:hover { filter: brightness(0.95); }
-.btn-discord:active { transform: translateY(1px); }
+
+.btn-discord:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
+}
+
+.btn-discord:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* For theme consistency */
+body.dark .btn-discord {
+  background-color: #5865F2;
+  color: #fff;
+}
+body.dark .btn-discord:hover {
+  filter: brightness(1.2);
+}
+
+/* Discord logo inside button */
+.btn-discord img {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+  filter: brightness(1.1);
+}
+
+/* ======================================
+   Auth Page Centering
+====================================== */
+.auth-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 70vh;
+  text-align: center;
+}
+
+.auth-center h1 {
+  margin-bottom: 1.5rem;
+  font-size: 1.8rem;
+}
+
+/* Ensure details/secondary forms look good centered */
+.auth-center details {
+  max-width: 400px;
+  width: 100%;
+  margin-top: 1rem;
+  text-align: left;
+}
 
 /* Errors + small help text */
 .auth-error { color: #ef4444; margin: .25rem 0 .75rem; }
