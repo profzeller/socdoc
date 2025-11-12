@@ -53,8 +53,19 @@ body {
   margin-right: 0.75rem;
   transition: opacity 0.2s ease;
 }
-
 .navbar a:hover { opacity: 0.8; }
+
+.nav-left, .nav-right {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* Right side uses gap instead of per-link margins for crisp spacing */
+.nav-right { gap: 0.75rem; }
+.nav-right a { margin-right: 0; } /* avoid double spacing when inside .nav-right */
+
+.brand { font-weight: bold; margin-right: 1rem; }
 
 /* Theme toggle button */
 .theme-toggle {
@@ -62,34 +73,75 @@ body {
   border: none;
   color: var(--nav-text);
   font-size: 1.1rem;
-  margin-right: 0.5rem;
   cursor: pointer;
-  transition: transform 0.2s ease;
+  transition: transform 0.2s ease, opacity 0.2s ease;
 }
+.theme-toggle:hover { transform: rotate(20deg); opacity: 0.85; }
 
-.theme-toggle:hover { transform: rotate(20deg); }
-
-/* Rest stays the same as before ↓ */
-.nav-left, .nav-right { display: flex; align-items: center; flex-wrap: wrap; }
-.brand { font-weight: bold; margin-right: 1rem; }
+/* Team pill */
 .team-pill {
   background: var(--pill-bg);
-  border-radius: 4px;
-  padding: 2px 8px;
-  margin-right: 0.5rem;
+  border-radius: 6px;
+  padding: 3px 8px;
   font-size: 0.9rem;
+  line-height: 1;
 }
+
+/* User identity: avatar + username */
+.user-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--nav-text);
+  text-decoration: none;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+.user-link:hover { background: rgba(148,163,184,0.15); }
+
+.avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #334155;
+  display: inline-block;
+}
+.avatar-fallback {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #334155;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--nav-text);
+}
+.username { font-weight: 600; }
+
+/* Logout button styled like a link chip */
 .logout-form { display: inline; }
 .logout-btn {
   background: none;
-  border: none;
+  border: 1px solid transparent;
   color: var(--nav-text);
   cursor: pointer;
   font-size: 1rem;
-  margin-left: 0.5rem;
+  padding: 2px 6px;
+  border-radius: 6px;
 }
-.logout-btn:hover { opacity: 0.8; }
-.page-content { padding: 1.5rem; max-width: 1000px; margin: 0 auto; }
+.logout-btn:hover { background: rgba(148,163,184,0.15); }
+
+/* Page layout */
+.page-content {
+  padding: 1.5rem;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+/* Buttons */
 button, input[type=submit] {
   background: var(--button-bg);
   color: var(--nav-text);
@@ -100,6 +152,9 @@ button, input[type=submit] {
   transition: background 0.2s ease;
 }
 button:hover, input[type=submit]:hover { background: var(--button-hover); }
+
+/* Form elements */
+form { margin-top: 1rem; }
 input[type=text], input[type=password], input[type=email], textarea, select {
   width: 100%;
   padding: 0.5rem;
@@ -108,6 +163,8 @@ input[type=text], input[type=password], input[type=email], textarea, select {
   border-radius: 4px;
   box-sizing: border-box;
 }
+
+/* Typography & links */
 h1, h2, h3 { color: var(--fg); }
 a { color: var(--link); }
 a:hover { color: var(--link-hover); text-decoration: underline; }
@@ -122,9 +179,7 @@ a:hover { color: var(--link-hover); text-decoration: underline; }
   color: var(--fg);
 }
 
-.auth-card h1 {
-  margin: 0 0 1rem 0;
-}
+.auth-card h1 { margin: 0 0 1rem 0; }
 
 .auth-divider {
   display: flex;
@@ -150,14 +205,8 @@ a:hover { color: var(--link-hover); text-decoration: underline; }
   list-style: none;
 }
 .auth-details summary::-webkit-details-marker { display: none; }
-.auth-details summary::after {
-  content: " ▾";
-  opacity: .7;
-}
-.auth-details[open] summary::after {
-  content: " ▴";
-  opacity: .7;
-}
+.auth-details summary::after { content: " ▾"; opacity: .7; }
+.auth-details[open] summary::after { content: " ▴"; opacity: .7; }
 .details-body { margin-top: 1rem; }
 
 /* Discord button */
@@ -176,9 +225,6 @@ a:hover { color: var(--link-hover); text-decoration: underline; }
 .btn-discord:active { transform: translateY(1px); }
 
 /* Errors + small help text */
-.auth-error {
-  color: #ef4444; /* red-500 */
-  margin: .25rem 0 .75rem;
-}
+.auth-error { color: #ef4444; margin: .25rem 0 .75rem; }
 .auth-help { margin-top: .5rem; font-size: .9rem; }
 .auth-foot { margin-top: 1rem; font-size: .9rem; }

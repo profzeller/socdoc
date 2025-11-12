@@ -20,14 +20,27 @@
     </div>
 
     <div class="nav-right">
-        <button id="theme-toggle" class="theme-toggle" title="Toggle dark mode">🌓</button>
+      <button id="theme-toggle" class="theme-toggle" title="Toggle dark mode">🌓</button>
+
       {% if user.is_authenticated %}
         {% if user.profile and user.profile.team %}
           <span class="team-pill">{{ user.profile.team.name }}</span>
         {% elif CURRENT_TEAM %}
           <span class="team-pill">{{ CURRENT_TEAM.name }}</span>
         {% endif %}
-        <a href="{% url 'accounts:profile' %}">Profile/Teams</a>
+
+        <!-- User identity: avatar (if available) + username -->
+        <a href="{% url 'accounts:profile' %}" class="user-link" title="Profile / Teams">
+          {% with sa=user.socialaccount_set.first %}
+            {% if sa and sa.extra_data and sa.extra_data.avatar %}
+              <img class="avatar" src="{{ sa.extra_data.avatar }}" alt="avatar">
+            {% else %}
+              <span class="avatar avatar-fallback">{{ user.get_username|first|upper }}</span>
+            {% endif %}
+          {% endwith %}
+          <span class="username">{{ user.get_username }}</span>
+        </a>
+
         <form method="post" action="{% url 'account_logout' %}" class="logout-form">
           {% csrf_token %}
           <button type="submit" class="logout-btn">Logout</button>
@@ -46,15 +59,12 @@
     // Theme persistence + toggle logic
     const toggle = document.getElementById('theme-toggle');
     const body = document.body;
-
-    // Load saved theme or system preference
     const saved = localStorage.getItem('theme');
     if (saved) {
       body.className = saved;
     } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
       body.className = 'dark';
     }
-
     toggle.addEventListener('click', () => {
       const newTheme = body.classList.contains('dark') ? 'light' : 'dark';
       body.className = newTheme;
