@@ -1,22 +1,42 @@
 {% extends "_base.html" %}
-{% block title %}{% if page %}Edit{% else %}Create{% endif %} Doc Page{% endblock %}
+{% block title %}Edit: {{ page.title }}{% endblock %}
 
 {% block content %}
-<h1>{% if page %}Edit{% else %}Create{% endif %} Documentation Page</h1>
+<h1>Edit Page</h1>
 
 <form method="post">
   {% csrf_token %}
-  {{ form.as_p }}
-  <button type="submit">Save</button>
-</form>
+  {{ form.non_field_errors }}
 
-{% if page %}
-  <p style="margin-top:1rem;">
-    <a href="{% url 'docs:view' page.slug %}">Back to page</a>
+  <p>
+    {{ form.title.label_tag }}<br>
+    {{ form.title }}
   </p>
-{% else %}
-  <p style="margin-top:1rem;">
-    <a href="{% url 'docs:index' %}">Back to docs index</a>
+
+  <p>
+    {{ form.category.label_tag }}<br>
+    {{ form.category }}
   </p>
-{% endif %}
+
+  <p>
+    {{ form.new_category.label_tag }}<br>
+    {{ form.new_category }}
+    <small style="color:#64748b;">
+      (Optional — enter a new category name if you want to create one)
+    </small>
+  </p>
+
+  <p>
+    {{ form.body.label_tag }}<br>
+    {{ form.body }}
+    <small style="color:#64748b; display:block; margin-top:0.25rem;">
+      This page must be written in <strong>Markdown format</strong>.<br>
+      Need help?
+      <a href="https://www.markdownguide.org/basic-syntax/" target="_blank">Markdown Basics</a> or
+      <a href="https://github.github.com/gfm/" target="_blank">GitHub-Flavored Markdown</a>.
+    </small>
+  </p>
+
+  <button type="submit">Save Changes</button>
+</form>
 {% endblock %}

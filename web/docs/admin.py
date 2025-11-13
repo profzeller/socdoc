@@ -10,7 +10,7 @@ class DocCategoryAdmin(admin.ModelAdmin):
 
 @admin.register(DocPage)
 class DocPageAdmin(admin.ModelAdmin):
-    list_display = ("title", "category", "author", "updated_at")
-    list_filter = ("category", "author")
+    list_display = ("title", "category", "team", "author", "updated_at")
+    list_filter = ("category", "team", "author")
     search_fields = ("title", "body")
     prepopulated_fields = {"slug": ("title",)}

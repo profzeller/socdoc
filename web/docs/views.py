@@ -5,14 +5,12 @@ from markdownx.utils import markdownify
 
 from .models import DocPage, DocCategory
 from .forms import DocPageForm
+from accounts.models import Profile   # 👈 NEW
 
 
 def docs_index(request):
-    """
-    List all docs, grouped by category.
-    """
     categories = DocCategory.objects.all().order_by("name")
-    pages = DocPage.objects.select_related("category").all()
+    pages = DocPage.objects.select_related("category", "team", "author").all()
     return render(
         request,
         "docs/index.html",
@@ -21,9 +19,6 @@ def docs_index(request):
 
 
 def doc_view(request, slug):
-    """
-    View a single documentation page.
-    """
     page = get_object_or_404(DocPage, slug=slug)
     html = markdownify(page.body)
     return render(
@@ -33,6 +28,14 @@ def doc_view(request, slug):
     )
 
 
+def _user_team(user):
+    """Helper: safe way to get a user's Team (or None)."""
+    if not user.is_authenticated:
+        return None
+    profile, _ = Profile.objects.get_or_create(user=user)
+    return profile.team
+
+
 @login_required
 def doc_edit(request, slug=None):
     """
@@ -40,12 +43,25 @@ def doc_edit(request, slug=None):
 
     Rules:
     - Create: any logged-in user.
-    - Edit: page author or staff.
+    - Edit: staff OR any member of the owning team
+            (fallback: original author if no team set).
     """
     page = None
     if slug:
         page = get_object_or_404(DocPage, slug=slug)
-        if not (request.user.is_staff or page.author == request.user):
+        user_team = _user_team(request.user)
+
+        # Permission check
+        allowed = False
+        if request.user.is_staff:
+            allowed = True
+        elif page.team and user_team and page.team_id == user_team.id:
+            allowed = True
+        elif not page.team and page.author == request.user:
+            # old pages or special cases
+            allowed = True
+
+        if not allowed:
             messages.error(request, "You are not allowed to edit this page.")
             return redirect("docs:view", slug=page.slug)
 
@@ -53,8 +69,17 @@ def doc_edit(request, slug=None):
         form = DocPageForm(request.POST, instance=page)
         if form.is_valid():
             page = form.save(commit=False)
+
+            # Attach team on create, or keep existing
+            if page.pk is None:
+                # New page: attach creator's team (if any)
+                creator_team = _user_team(request.user)
+                if creator_team:
+                    page.team = creator_team
+
             if page.author_id is None:
                 page.author = request.user
+
             page.save()
             messages.success(request, "Page saved.")
             return redirect("docs:view", slug=page.slug)

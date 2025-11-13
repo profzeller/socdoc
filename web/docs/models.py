@@ -3,6 +3,9 @@ from django.contrib.auth.models import User
 from markdownx.models import MarkdownxField
 from django.utils.text import slugify
 
+from accounts.models import Team   # 👈 NEW
+
+
 class DocCategory(models.Model):
     name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField(unique=True, blank=True)
@@ -20,6 +23,10 @@ class DocPage(models.Model):
     title = models.CharField(max_length=200)
     slug = models.SlugField(unique=True, blank=True)
     category = models.ForeignKey(DocCategory, on_delete=models.SET_NULL, null=True, blank=True)
+
+    # 👇 NEW: doc is owned by a team
+    team = models.ForeignKey(Team, null=True, blank=True, on_delete=models.SET_NULL, related_name="docs")
+
     body = MarkdownxField()
     author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     updated_at = models.DateTimeField(auto_now=True)
