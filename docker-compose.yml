@@ -36,7 +36,6 @@ services:
 
     volumes:
       - ./media:/app/media
-      - ./templates:/app/templates
     restart: unless-stopped
     networks:
       - default
