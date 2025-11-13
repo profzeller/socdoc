@@ -1,10 +1,10 @@
 {% extends "_base.html" %}
-{% block title %}Edit: {{ page.title }}{% endblock %}
+{% block title %}{{ form.instance.pk|yesno:"Edit Page,Create Page" }}{% endblock %}
 
 {% block content %}
-<h1>Edit Page</h1>
+<h1>{{ form.instance.pk|yesno:"Edit Page,Create Page" }}</h1>
 
-<form method="post">
+<form method="post" id="doc-form">
   {% csrf_token %}
   {{ form.non_field_errors }}
 
@@ -18,6 +18,7 @@
     {{ form.category }}
   </p>
 
+  {% if form.new_category %}
   <p>
     {{ form.new_category.label_tag }}<br>
     {{ form.new_category }}
@@ -25,18 +26,184 @@
       (Optional — enter a new category name if you want to create one)
     </small>
   </p>
+  {% endif %}
 
-  <p>
-    {{ form.body.label_tag }}<br>
-    {{ form.body }}
-    <small style="color:#64748b; display:block; margin-top:0.25rem;">
-      This page must be written in <strong>Markdown format</strong>.<br>
-      Need help?
-      <a href="https://www.markdownguide.org/basic-syntax/" target="_blank">Markdown Basics</a> or
-      <a href="https://github.github.com/gfm/" target="_blank">GitHub-Flavored Markdown</a>.
-    </small>
-  </p>
+  <!-- Markdown editor + preview -->
+  <div class="md-editor" data-doc-key="{{ form.instance.slug|default_if_none:'' }}">
+    <div class="md-editor-main">
 
-  <button type="submit">Save Changes</button>
+      <!-- 🔹 HEADER WITH TOGGLE -->
+      <div class="md-editor-header">
+        <label for="id_body"><strong>Body (Markdown)</strong></label>
+        <button type="button" id="toggle-preview" class="md-preview-toggle">
+          Show Preview
+        </button>
+      </div>
+
+      <!-- 🔹 TOOLBAR -->
+      <div class="md-toolbar">
+        <button type="button" data-md="h1">H1</button>
+        <button type="button" data-md="h2">H2</button>
+        <button type="button" data-md="bold"><strong>B</strong></button>
+        <button type="button" data-md="italic"><em>I</em></button>
+        <button type="button" data-md="ul">• List</button>
+        <button type="button" data-md="code">{"</>"}</button>
+      </div>
+
+      {{ form.body }}
+
+      <small style="color:#64748b; display:block; margin-top:0.25rem;">
+        Write this page in <strong>Markdown format</strong>.<br>
+        Need help?
+        <a href="https://www.markdownguide.org/basic-syntax/" target="_blank">Markdown Basics</a> or
+        <a href="https://github.github.com/gfm/" target="_blank">GitHub-Flavored Markdown</a>.
+      </small>
+
+      <p id="autosave-status" class="autosave-status"></p>
+    </div>
+
+    <!-- 🔹 PREVIEW COLUMN (starts hidden via JS) -->
+    <div class="md-preview">
+      <div class="md-preview-inner" id="md-preview">
+        <!-- live preview goes here -->
+      </div>
+    </div>
+  </div>
+
+  <button type="submit">
+    {{ form.instance.pk|yesno:"Save Changes,Create Page" }}
+  </button>
 </form>
+
+<!-- Markdown renderer (CDN) -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+<script>
+  (function () {
+    const textarea = document.getElementById('id_body');
+    if (!textarea) return;
+
+    const preview = document.getElementById('md-preview');
+    const editor = document.querySelector('.md-editor');
+    const status = document.getElementById('autosave-status');
+    const previewToggle = document.getElementById('toggle-preview');
+    const previewColumn = preview ? preview.parentElement : null;
+
+    const storageKeyBase = 'socdocs-md-';
+    const docKeyAttr = editor ? editor.getAttribute('data-doc-key') : '';
+    const storageKey = storageKeyBase + (docKeyAttr || window.location.pathname);
+
+    // ---- Preview visibility (default: OFF) ----
+    let previewVisible = false;
+    if (previewColumn) {
+      previewColumn.style.display = 'none';  // start hidden
+    }
+    if (previewToggle) {
+      previewToggle.addEventListener('click', function () {
+        previewVisible = !previewVisible;
+        if (previewColumn) {
+          previewColumn.style.display = previewVisible ? 'block' : 'none';
+        }
+        previewToggle.textContent = previewVisible ? 'Hide Preview' : 'Show Preview';
+      });
+    }
+
+    // ---- Load draft from localStorage ----
+    const savedDraft = localStorage.getItem(storageKey);
+    if (savedDraft && !textarea.value) {
+      textarea.value = savedDraft;
+    }
+
+    // ---- Render Markdown into preview ----
+    function renderPreview() {
+      if (!preview) return;
+      if (typeof marked !== 'undefined') {
+        preview.innerHTML = marked.parse(textarea.value || '');
+      } else {
+        preview.textContent = textarea.value || '';
+      }
+    }
+
+    // ---- Auto-save draft to localStorage ----
+    let saveTimeout = null;
+    function scheduleAutosave() {
+      if (saveTimeout) clearTimeout(saveTimeout);
+      saveTimeout = setTimeout(function () {
+        localStorage.setItem(storageKey, textarea.value || '');
+        if (status) {
+          const now = new Date();
+          const t = now.toLocaleTimeString();
+          status.textContent = 'Draft saved at ' + t;
+        }
+      }, 600); // save 0.6s after typing stops
+    }
+
+    textarea.addEventListener('input', function () {
+      renderPreview();
+      scheduleAutosave();
+    });
+
+    // ---- Toolbar: insert / wrap markdown ----
+    function wrapSelection(before, after) {
+      const start = textarea.selectionStart || 0;
+      const end = textarea.selectionEnd || 0;
+      const value = textarea.value;
+      const selected = value.slice(start, end);
+      const newText = before + selected + (after != null ? after : '');
+      textarea.setRangeText(newText, start, end, 'end');
+      textarea.dispatchEvent(new Event('input'));
+      textarea.focus();
+    }
+
+    function insertLinePrefix(prefix) {
+      const start = textarea.selectionStart || 0;
+      const end = textarea.selectionEnd || 0;
+      const value = textarea.value;
+      const before = value.slice(0, start);
+      const selected = value.slice(start, end) || 'List item';
+      const after = value.slice(end);
+
+      const lines = selected.split('\n').map(l => {
+        return l.trim() ? prefix + ' ' + l.trim() : prefix + ' ';
+      });
+      const newBlock = lines.join('\n');
+
+      textarea.value = before + newBlock + after;
+      const newCursor = before.length + newBlock.length;
+      textarea.setSelectionRange(newCursor, newCursor);
+      textarea.dispatchEvent(new Event('input'));
+      textarea.focus();
+    }
+
+    document.querySelectorAll('.md-toolbar button[data-md]').forEach(btn => {
+      btn.addEventListener('click', function () {
+        const action = this.getAttribute('data-md');
+        switch (action) {
+          case 'h1':
+            insertLinePrefix('#');
+            break;
+          case 'h2':
+            insertLinePrefix('##');
+            break;
+          case 'bold':
+            wrapSelection('**', '**');
+            break;
+          case 'italic':
+            wrapSelection('*', '*');
+            break;
+          case 'ul':
+            insertLinePrefix('-');
+            break;
+          case 'code':
+            wrapSelection('\n```bash\n', '\n```\n');
+            break;
+        }
+      });
+    });
+
+    // Initial render (even if preview is hidden)
+    renderPreview();
+  })();
+</script>
+
 {% endblock %}
