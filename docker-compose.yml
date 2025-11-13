@@ -16,13 +16,14 @@ services:
   web:
     build: ./web
     command: gunicorn socdocs.wsgi:application --bind 0.0.0.0:8000
-    env_file: .env
+    # ❌ NO env_file here in production
     depends_on:
       db:
         condition: service_healthy
     expose:
       - "8000"
     environment:
+      # Minimal baked-in env; override or add more in Portainer UI
       DATABASE_URL: postgres://socuser:socpass@db:5432/socdocs
     volumes:
       - ./media:/app/media
