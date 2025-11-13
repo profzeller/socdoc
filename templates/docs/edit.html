@@ -1,2 +1,22 @@
-<h1>New Documentation Page</h1>
-<form method="post">{% csrf_token %}{{ form.as_p }}<button>Submit</button></form>
+{% extends "_base.html" %}
+{% block title %}{% if page %}Edit{% else %}Create{% endif %} Doc Page{% endblock %}
+
+{% block content %}
+<h1>{% if page %}Edit{% else %}Create{% endif %} Documentation Page</h1>
+
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Save</button>
+</form>
+
+{% if page %}
+  <p style="margin-top:1rem;">
+    <a href="{% url 'docs:view' page.slug %}">Back to page</a>
+  </p>
+{% else %}
+  <p style="margin-top:1rem;">
+    <a href="{% url 'docs:index' %}">Back to docs index</a>
+  </p>
+{% endif %}
+{% endblock %}

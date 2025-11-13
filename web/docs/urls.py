@@ -1,9 +1,11 @@
 from django.urls import path
-from .views import page_list, page_detail, page_create
+from . import views
 
 app_name = "docs"
+
 urlpatterns = [
-    path("", page_list, name="list"),
-    path("new/", page_create, name="new"),
-    path("<slug:slug>/", page_detail, name="detail"),
+    path("", views.docs_index, name="index"),
+    path("edit/", views.doc_edit, name="create"),
+    path("edit/<slug:slug>/", views.doc_edit, name="edit"),
+    path("<slug:slug>/", views.doc_view, name="view"),
 ]

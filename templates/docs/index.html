@@ -1,0 +1,38 @@
+{% extends "_base.html" %}
+{% block title %}Docs{% endblock %}
+
+{% block content %}
+<h1>Documentation</h1>
+
+{% if user.is_authenticated %}
+  <p><a href="{% url 'docs:create' %}">➕ Create New Page</a></p>
+{% endif %}
+
+{% if categories %}
+  <h2>By Category</h2>
+  {% for cat in categories %}
+    <h3>{{ cat.name }}</h3>
+    <ul>
+      {% for p in pages %}
+        {% if p.category_id == cat.id %}
+          <li><a href="{% url 'docs:view' p.slug %}">{{ p.title }}</a></li>
+        {% endif %}
+      {% empty %}
+        <li>No pages yet.</li>
+      {% endfor %}
+    </ul>
+  {% endfor %}
+{% endif %}
+
+<h2>All Pages</h2>
+<ul>
+  {% for p in pages %}
+    <li>
+      <a href="{% url 'docs:view' p.slug %}">{{ p.title }}</a>
+      {% if p.category %}<span style="color:#64748b;font-size:.85rem;">({{ p.category.name }})</span>{% endif %}
+    </li>
+  {% empty %}
+    <li>No documentation pages yet.</li>
+  {% endfor %}
+</ul>
+{% endblock %}

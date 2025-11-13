@@ -1,42 +1,68 @@
+from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect, get_object_or_404
-from django.forms import ModelForm
-from .models import DocPage
-from django.http import Http404
+from django.contrib import messages
+from markdownx.utils import markdownify
 
-class DocForm(ModelForm):
-    class Meta:
-        model = DocPage
-        fields = ["title","slug","content","milestone"]
-
-def page_list(request):
-    qs = DocPage.objects.filter(approved=True).order_by("title")
-    team_name = request.GET.get("team")
-    if team_name and request.user.is_authenticated:
-        if request.user.teams.filter(name=team_name).exists():
-            qs = qs.filter(author__in=request.user.teams.get(name=team_name).members.all())
-    drafts = []
-    if request.user.is_authenticated:
-        drafts = DocPage.objects.filter(author=request.user, approved=False).order_by("-updated_at")
-    return render(request, "docs/list.html", {"pages": qs, "drafts": drafts})
+from .models import DocPage, DocCategory
+from .forms import DocPageForm
 
 
-def page_detail(request, slug):
+def docs_index(request):
+    """
+    List all docs, grouped by category.
+    """
+    categories = DocCategory.objects.all().order_by("name")
+    pages = DocPage.objects.select_related("category").all()
+    return render(
+        request,
+        "docs/index.html",
+        {"categories": categories, "pages": pages},
+    )
+
+
+def doc_view(request, slug):
+    """
+    View a single documentation page.
+    """
     page = get_object_or_404(DocPage, slug=slug)
-    if not page.approved and (not request.user.is_authenticated or (request.user != page.author and not request.user.is_staff)):
-        raise Http404()
-    return render(request, "docs/detail.html", {"page": page})
+    html = markdownify(page.body)
+    return render(
+        request,
+        "docs/view.html",
+        {"page": page, "html": html},
+    )
+
 
 @login_required
-def page_create(request):
+def doc_edit(request, slug=None):
+    """
+    Create or edit a page.
+
+    Rules:
+    - Create: any logged-in user.
+    - Edit: page author or staff.
+    """
+    page = None
+    if slug:
+        page = get_object_or_404(DocPage, slug=slug)
+        if not (request.user.is_staff or page.author == request.user):
+            messages.error(request, "You are not allowed to edit this page.")
+            return redirect("docs:view", slug=page.slug)
+
     if request.method == "POST":
-        form = DocForm(request.POST)
+        form = DocPageForm(request.POST, instance=page)
         if form.is_valid():
-            obj = form.save(commit=False)
-            obj.author = request.user
-            obj.approved = False
-            obj.save()
-            return redirect("docs:list")
+            page = form.save(commit=False)
+            if page.author_id is None:
+                page.author = request.user
+            page.save()
+            messages.success(request, "Page saved.")
+            return redirect("docs:view", slug=page.slug)
     else:
-        form = DocForm()
-    return render(request, "docs/edit.html", {"form": form})
+        form = DocPageForm(instance=page)
+
+    return render(
+        request,
+        "docs/edit.html",
+        {"form": form, "page": page},
+    )
