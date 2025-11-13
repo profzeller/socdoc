@@ -8,15 +8,17 @@
 <body>
   <nav class="navbar">
     <div class="nav-left">
-      <a href="/" class="brand">SOC Docs</a>
-      <a href="/docs/">Docs</a>
-      <a href="/policies/">Policies</a>
-      <a href="/diagrams/">Diagrams</a>
-      {% if user.is_staff %}
-        <a href="/moderation/">Moderation</a>
-        <a href="/grading/">Grading</a>
-      {% endif %}
-    </div>
+    <a href="/" class="brand">SOC Docs</a>
+    <a href="/docs/">Docs</a>
+    <!-- # Temporarily hiding Policies & Diagrams for v1
+    <a href="/policies/">Policies</a>
+    <a href="/diagrams/">Diagrams</a>
+    -->
+    {% if user.is_staff %}
+      <a href="/moderation/">Moderation</a>
+      <a href="/grading/">Grading</a>
+    {% endif %}
+  </div>
 
     <div class="nav-right">
   <button id="theme-toggle" class="theme-toggle" title="Toggle dark mode">🌓</button>
