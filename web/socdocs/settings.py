@@ -124,8 +124,6 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-SITE_ID = 1
-
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",    # keep Django auth
     "allauth.account.auth_backends.AuthenticationBackend",  # allauth
