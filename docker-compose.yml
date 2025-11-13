@@ -12,32 +12,55 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+    networks:
+      - default
 
   web:
     build: ./web
+    container_name: socdocs-web
+    hostname: socdocs.fhsucyber.com
     command: gunicorn socdocs.wsgi:application --bind 0.0.0.0:8000
-    # ❌ NO env_file here in production
     depends_on:
       db:
         condition: service_healthy
+
+    # ⚠ No ports here – Nginx Proxy Manager will talk to this
+    # container over the shared docker network on port 8000.
     expose:
       - "8000"
+
     environment:
-      # Minimal baked-in env; override or add more in Portainer UI
+      # Minimal baked-in env; you can override/add per-service
+      # env vars in Portainer's UI.
       DATABASE_URL: postgres://socuser:socpass@db:5432/socdocs
+
     volumes:
       - ./media:/app/media
     restart: unless-stopped
+    networks:
+      - default
+      - nginx-proxy_default
 
   fossflow:
     image: stnsmith/fossflow:latest
     container_name: fossflow
     restart: unless-stopped
+    # You can keep this port for direct access,
+    # AND put it on nginx-proxy_default for future proxying.
     ports:
       - "8090:80"
     volumes:
       - fossflow_data:/data
+    networks:
+      - default
+      - nginx-proxy_default
 
 volumes:
   pgdata:
   fossflow_data:
+
+networks:
+  default:
+    driver: bridge
+  nginx-proxy_default:
+    external: true
