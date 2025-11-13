@@ -1,15 +1,26 @@
 {% extends "_base.html" %}
 {% load socialaccount %}
+{% load safe_social %}
 
 {% block title %}Sign In{% endblock %}
 {% block content %}
 <div class="auth-center">
   <h1>Sign in</h1>
 
-  <a href="{% provider_login_url 'discord' process='login' %}" class="btn-discord">
-    <img src="/static/img/discord-mark-white.svg" alt="Discord Logo">
-    Sign in with Discord
-  </a>
+  {# Get a safe Discord login URL ('' if misconfigured) #}
+  {% safe_provider_login_url 'discord' process='login' as discord_login_url %}
+
+  {% if discord_login_url %}
+    <a href="{{ discord_login_url }}" class="btn-discord">
+      <img src="/static/img/discord-mark-white.svg" alt="Discord Logo">
+      Sign in with Discord
+    </a>
+  {% else %}
+    {# Optional: show a fallback / hide entirely #}
+    <p style="color:#f97316;font-size:.9rem;">
+      Discord sign-in is currently unavailable. Please use email/password.
+    </p>
+  {% endif %}
 
   <div class="auth-divider">
     <div class="line"></div>
@@ -23,11 +34,13 @@
       <form method="post" action="{% url 'account_login' %}">
         {% csrf_token %}
         {{ form.as_p }}
-        <button type="submit">Sign In</button>
+        <button type="submit">Sign in</button>
       </form>
     </div>
   </details>
 
-  <p class="auth-foot">No account? <a href="{% url 'account_signup' %}">Sign up</a></p>
+  <p class="auth-foot">
+    No account? <a href="{% url 'account_signup' %}">Sign up</a>
+  </p>
 </div>
 {% endblock %}

@@ -1,0 +1,50 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: socdocs
+      POSTGRES_USER: socuser
+      POSTGRES_PASSWORD: socpass
+    volumes:
+      - pgdata_dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U socuser -d socdocs"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  web:
+    build: ./web
+    # Dev server with auto-reload
+    command: python manage.py runserver 0.0.0.0:8000
+    env_file: .env
+    environment:
+      DJANGO_DEBUG: "True"
+      DJANGO_ALLOWED_HOSTS: "localhost,127.0.0.1"
+      DATABASE_URL: postgres://socuser:socpass@db:5432/socdocs
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount code for live editing
+      - ./web:/app
+      # Mount external templates folder
+      - ./templates:/app/templates
+      # Media persists between runs
+      - ./media:/app/media
+    restart: unless-stopped
+
+  fossflow:
+    image: stnsmith/fossflow:latest
+    container_name: fossflow_dev
+    restart: unless-stopped
+    ports:
+      - "8090:80"
+    volumes:
+      - fossflow_data_dev:/data
+
+volumes:
+  pgdata_dev:
+  fossflow_data_dev:
