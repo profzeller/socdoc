@@ -20,21 +20,20 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    ports:
-      - "8000:8000"
-    volumes:
-      - ./web:/app
-      - ./templates:/app/templates
-      - ./media:/app/media
+    expose:
+      - "8000"
     environment:
-      - DATABASE_URL=postgres://socuser:socpass@db:5432/socdocs
+      DATABASE_URL: postgres://socuser:socpass@db:5432/socdocs
+    volumes:
+      - ./media:/app/media
+    restart: unless-stopped
 
   fossflow:
     image: stnsmith/fossflow:latest
     container_name: fossflow
     restart: unless-stopped
     ports:
-      - "8090:80"     # fossflow serves HTTP on 80 in this image
+      - "8090:80"
     volumes:
       - fossflow_data:/data
 

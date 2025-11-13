@@ -6,8 +6,22 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev")
 DEBUG = os.getenv("DJANGO_DEBUG", "True") == "True"
-#ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "*").split(",")
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "*"]
+if DEBUG == "True":
+    ALLOWED_HOSTS = ["localhost", "127.0.0.1", "*"]
+else:
+    ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "*").split(",")
+
+# add for CSRF behind NPM (HTTPS)
+CSRF_TRUSTED_ORIGINS = [
+    "https://socdocs.fhsucyber.com",
+]
+
+# tell Django we’re behind a proxy that sets X-Forwarded-Proto
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+# once you’re 100% on HTTPS via NPM, turn these on:
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 
 INSTALLED_APPS = [
     "django.contrib.admin",
