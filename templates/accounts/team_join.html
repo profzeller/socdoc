@@ -1,10 +1,13 @@
 {% extends "_base.html" %}
-{% block title %}Join Team{% endblock %}
+{% block title %}Join team{% endblock %}
+
 {% block content %}
-<h1>Join Team</h1>
+<h1>Join a team</h1>
+<p>Select your team from the list below, or go back and create one.</p>
+
 <form method="post">
   {% csrf_token %}
   {{ form.as_p }}
-  <button type="submit">Join</button>
+  <button type="submit">Join team</button>
 </form>
 {% endblock %}

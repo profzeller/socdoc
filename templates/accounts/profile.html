@@ -1,11 +1,68 @@
 {% extends "_base.html" %}
 {% block title %}My Profile{% endblock %}
+
 {% block content %}
 <h1>My Profile</h1>
-<p><strong>User:</strong> {{ profile.user.username }}</p>
-<p><strong>Team:</strong> {{ profile.team|default:"(none)" }}</p>
-<p><a href="{% url 'accounts:team_create' %}">Create Team</a> | <a href="{% url 'accounts:team_join' %}">Join Team</a></p>
-{% if profile.team %}
-  <p><strong>Team Join Code:</strong> {{ profile.team.join_code }} (share with teammates)</p>
-{% endif %}
+
+<section style="margin-bottom:2rem;">
+  <h2>Account</h2>
+  <p><strong>Username:</strong> {{ user.username }}</p>
+
+  {% if profile.discord_id %}
+    <p><strong>Discord ID:</strong> {{ profile.discord_id }}</p>
+  {% endif %}
+
+  <form method="post" style="max-width:400px;margin-top:1rem;">
+    {% csrf_token %}
+    {{ profile_form.as_p }}
+    <button type="submit">Update Profile</button>
+  </form>
+</section>
+
+<section style="margin-bottom:2rem;">
+  <h2>Team</h2>
+
+  {% if team %}
+    <p><strong>Team:</strong> {{ team.name }}</p>
+    <p><strong>Join code:</strong> {{ team.join_code }}<br>
+       <small>Share this code with your teammates so they can join your team.</small>
+    </p>
+
+    <h3>Members</h3>
+    <ul>
+      {% for member in team_members %}
+        <li>
+          {{ member.user.username }}
+          {% if member.display_name %}
+            — {{ member.display_name }}
+          {% endif %}
+          {% if member.role_in_soc %}
+            <span style="color:#64748b;font-size:.85rem;">({{ member.role_in_soc }})</span>
+          {% endif %}
+        </li>
+      {% empty %}
+        <li>No other members yet.</li>
+      {% endfor %}
+    </ul>
+
+    {% if user.is_staff %}
+      <p style="font-size:.85rem;color:#64748b;">
+        As staff, you can move students between teams via the admin.
+      </p>
+    {% endif %}
+
+  {% else %}
+    <p>You are not on a team yet.</p>
+
+    {% if CLASS_CONFIG.students_can_create_teams or user.is_staff %}
+      <p>You can either create a new team or join an existing one:</p>
+      <p>
+        <a href="{% url 'accounts:team_create' %}">Create Team</a> ·
+        <a href="{% url 'accounts:team_join' %}">Join Team (with code)</a>
+      </p>
+    {% else %}
+      <p>Your instructor will assign you to a team.</p>
+    {% endif %}
+  {% endif %}
+</section>
 {% endblock %}

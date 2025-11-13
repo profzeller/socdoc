@@ -1,17 +1,24 @@
 from django.contrib import admin
-from .models import Team, Profile, ClassCode
+from .models import Team, Profile, ClassCode, ClassConfig
 
 @admin.register(Team)
 class TeamAdmin(admin.ModelAdmin):
-    list_display = ("name", "join_code", "owner", "created_at")
-    search_fields = ("name", "join_code")
-    readonly_fields = ("join_code",)
+    list_display = ("name", "member_count", "created_at")
+    search_fields = ("name",)
+
+    def member_count(self, obj):
+        return obj.members.count()
+
 
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
-    list_display = ("user", "team", "discord_id")
-    list_select_related = ("team", "user")
-    search_fields = ("user__username", "user__email", "discord_id")
+    list_display = ("user", "display_name", "team", "role_in_soc")
+    list_filter = ("team",)
+    search_fields = ("user__username", "display_name")
+
+@admin.register(ClassConfig)
+class ClassConfigAdmin(admin.ModelAdmin):
+    list_display = ("students_can_create_teams",)
 
 @admin.register(ClassCode)
 class ClassCodeAdmin(admin.ModelAdmin):
