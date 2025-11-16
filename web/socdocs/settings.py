@@ -136,10 +136,18 @@ ACCOUNT_EMAIL_VERIFICATION = "none"    # set to "mandatory" later if you want
 ACCOUNT_DEFAULT_HTTP_PROTOCOL = "http"   # use "https" in prod
 
 # Use our custom signup form (adds Class Code)
-ACCOUNT_FORMS = {"signup": "accounts.forms.ClassCodeSignupForm"}
+ACCOUNT_FORMS = {
+    "signup": "accounts.forms.ClassCodeSignupForm",
+}
+
 CLASS_ENROLL_CODE = os.getenv("CLASS_ENROLL_CODE", "")
 
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_AUTHENTICATION_METHOD = "email"
 SOCIALACCOUNT_LOGIN_ON_GET = True
 SOCIALACCOUNT_ADAPTER = "accounts.adapters.MySocialAdapter"
+SOCIALACCOUNT_AUTO_SIGNUP = False  # ensures Discord first-time users see signup form
+SOCIALACCOUNT_FORMS = {
+    "signup": "accounts.forms.SocialClassCodeSignupForm",
+}
+ACCOUNT_SESSION_REMEMBER = True    # nicer “stay logged in” behavior
