@@ -1,15 +1,16 @@
 from django import forms
 from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
-from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Avg
 from django.contrib import messages
 from django.urls import reverse
+from django.forms import inlineformset_factory
 
 import csv
 
-from .models import Milestone, Submission, Evidence, Team  # grading models
+from .models import Milestone, Submission, Evidence, Team, Criterion, CriterionScore
 from docs.models import DocPage
 
 
@@ -41,7 +42,30 @@ class DocSubmissionForm(forms.Form):
     )
 
 
-# ----- Views -----
+class CriterionScoreForm(forms.ModelForm):
+    """
+    Used in an inline formset when grading a single Submission.
+    Only points + comment are editable; criterion is fixed.
+    """
+    class Meta:
+        model = CriterionScore
+        fields = ["points", "comment"]
+        widgets = {
+            "points": forms.NumberInput(attrs={"step": "0.5", "min": "0"}),
+            "comment": forms.Textarea(attrs={"rows": 2}),
+        }
+
+
+CriterionScoreFormSet = inlineformset_factory(
+    Submission,
+    CriterionScore,
+    form=CriterionScoreForm,
+    extra=0,
+    can_delete=False,
+)
+
+
+# ----- Student-facing views -----
 
 
 @login_required
@@ -66,10 +90,7 @@ def view_scores(request):
 
 @login_required
 def submit_work(request):
-    """
-    Generic submission endpoint (not tied to a specific DocPage).
-    Create/update a submission; optionally attach one piece of evidence per submit.
-    """
+    """Create/update a submission; optionally attach one piece of evidence per submit."""
     if request.method == "POST":
         sform = SubmissionForm(request.POST)
         eform = EvidenceForm(request.POST, request.FILES)
@@ -91,12 +112,14 @@ def submit_work(request):
                 sub.policies = sform.cleaned_data.get("policies", "")
                 sub.save()
 
-            if eform.is_valid() and (eform.cleaned_data.get("link") or eform.cleaned_data.get("file")):
+            if eform.is_valid() and (
+                eform.cleaned_data.get("link") or eform.cleaned_data.get("file")
+            ):
                 ev = eform.save(commit=False)
                 ev.submission = sub
                 ev.save()
 
-            # Try to auto-attach grading.Team if you’re still using that model
+            # If you're still using grading.Team, auto-attach first team
             if not sub.team:
                 user_teams = request.user.teams.all()
                 if user_teams.exists():
@@ -112,59 +135,14 @@ def submit_work(request):
 
 
 @login_required
-def export_csv(request):
-    """Instructor-only: export all grades as CSV."""
-    if not request.user.is_staff:
-        return HttpResponse(status=403)
-
-    resp = HttpResponse(content_type="text/csv")
-    resp["Content-Disposition"] = "attachment; filename=grades.csv"
-    w = csv.writer(resp)
-    w.writerow(["username", "milestone", "score", "graded", "submitted_at"])
-
-    for s in Submission.objects.select_related("student", "milestone"):
-        w.writerow([s.student.username, s.milestone.title, s.score, s.graded, s.submitted_at])
-
-    return resp
-
-
-@staff_member_required
-def team_matrix(request):
-    teams = Team.objects.all().order_by("name")
-    milestones = Milestone.objects.all().order_by("title")
-    # average score per (team, milestone)
-    grid = {}
-    for t in teams:
-        row = {}
-        for m in milestones:
-            avg = (
-                Submission.objects
-                .filter(team=t, milestone=m, graded=True)
-                .aggregate(Avg("score"))["score__avg"]
-            )
-            row[m.id] = avg
-        grid[t.id] = row
-    return render(
-        request,
-        "grading/team_matrix.html",
-        {"teams": teams, "milestones": milestones, "grid": grid},
-    )
-
-
-# ----- NEW: submit from a DocPage -----
-
-
-@login_required
 def submit_from_doc(request, slug):
     """
     Link a DocPage to a Milestone as a Submission for the current student.
 
     Rules:
     - Only members of the doc's team can submit it.
-    - We DO NOT touch grading.Team membership here.
-    - We store:
-        - doc_page: FK to the page (for history)
-        - docs_url: URL back to the doc, for graders to click through.
+    - We do not change grading.Team here; we just create/update a Submission.
+    - We store a URL back to the doc in docs_url so graders can click through.
     """
     page = get_object_or_404(DocPage, slug=slug)
 
@@ -188,8 +166,7 @@ def submit_from_doc(request, slug):
                 reverse("docs:detail", args=[page.slug])
             )
 
-            # 🔗 Create or update the student’s submission for this milestone,
-            # and ensure it is tied to this specific DocPage.
+            # Create or update the student’s submission for this milestone
             sub, created = Submission.objects.update_or_create(
                 milestone=milestone,
                 student=request.user,
@@ -198,7 +175,6 @@ def submit_from_doc(request, slug):
                     "docs_url": doc_url,
                     "diagram": "",
                     "policies": "",
-                    "doc_page": page,
                 },
             )
 
@@ -214,4 +190,134 @@ def submit_from_doc(request, slug):
         request,
         "grading/submit_from_doc.html",
         {"page": page, "form": form},
+    )
+
+
+# ----- Instructor utilities (export, team matrix) -----
+
+
+@login_required
+def export_csv(request):
+    """Instructor-only: export all grades as CSV."""
+    if not request.user.is_staff:
+        return HttpResponse(status=403)
+
+    resp = HttpResponse(content_type="text/csv")
+    resp["Content-Disposition"] = "attachment; filename=grades.csv"
+    w = csv.writer(resp)
+    w.writerow(["username", "milestone", "score", "graded", "submitted_at"])
+
+    for s in Submission.objects.select_related("student", "milestone"):
+        w.writerow(
+            [s.student.username, s.milestone.title, s.score, s.graded, s.submitted_at]
+        )
+
+    return resp
+
+
+@staff_member_required
+def team_matrix(request):
+    teams = Team.objects.all().order_by("name")
+    milestones = Milestone.objects.all().order_by("title")
+    # average score per (team, milestone)
+    grid = {}
+    for t in teams:
+        row = {}
+        for m in milestones:
+            avg = (
+                Submission.objects.filter(team=t, milestone=m, graded=True)
+                .aggregate(Avg("score"))["score__avg"]
+            )
+            row[m.id] = avg
+        grid[t.id] = row
+    return render(
+        request,
+        "grading/team_matrix.html",
+        {"teams": teams, "milestones": milestones, "grid": grid},
+    )
+
+
+# ----- NEW: instructor grading views -----
+
+
+@staff_member_required
+def milestone_submissions(request, pk):
+    """
+    Staff view: show all submissions for a given milestone.
+    """
+    milestone = get_object_or_404(Milestone, pk=pk)
+    submissions = (
+        Submission.objects
+        .filter(milestone=milestone)
+        .select_related("student", "team")
+        .order_by("student__username")
+    )
+    return render(
+        request,
+        "grading/milestone_submissions.html",
+        {"milestone": milestone, "submissions": submissions},
+    )
+
+
+@staff_member_required
+def grade_submission(request, pk):
+    """
+    Staff view: grade a single submission against the milestone's criteria.
+    """
+    submission = get_object_or_404(
+        Submission.objects.select_related("milestone", "student", "team"),
+        pk=pk,
+    )
+    milestone = submission.milestone
+
+    # Ensure there is a CriterionScore for each Criterion in this milestone
+    criteria = milestone.criteria.all().order_by("id")
+    for crit in criteria:
+        CriterionScore.objects.get_or_create(
+            submission=submission,
+            criterion=crit,
+        )
+
+    if request.method == "POST":
+        formset = CriterionScoreFormSet(request.POST, instance=submission)
+        if formset.is_valid():
+            formset.save()
+
+            # Recalculate total score
+            total = 0
+            for cs in submission.criterion_scores.select_related("criterion"):
+                total += cs.points * float(cs.criterion.weight)
+            submission.score = total
+            submission.graded = True
+            submission.save()
+
+            messages.success(
+                request,
+                f"Saved scores for {submission.student.username} – {milestone.title}.",
+            )
+            return redirect("grading:milestone_submissions", pk=milestone.pk)
+    else:
+        formset = CriterionScoreFormSet(instance=submission)
+
+    # Pair up forms with their criterion for nicer display
+    rows = []
+    for form in formset.forms:
+        cs_obj = form.instance
+        crit = cs_obj.criterion
+        rows.append(
+            {
+                "criterion": crit,
+                "form": form,
+            }
+        )
+
+    return render(
+        request,
+        "grading/grade_submission.html",
+        {
+            "submission": submission,
+            "milestone": milestone,
+            "formset": formset,
+            "rows": rows,
+        },
     )

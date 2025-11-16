@@ -1,0 +1,72 @@
+{% extends "_base.html" %}
+{% block title %}Grade – {{ milestone.title }}{% endblock %}
+
+{% block content %}
+<h1>Grade Submission</h1>
+
+<p>
+  <a href="{% url 'grading:milestone_submissions' milestone.pk %}">← Back to submissions</a>
+</p>
+
+<div style="margin-bottom:1rem; padding:0.75rem 1rem; border:1px solid #e5e7eb; border-radius:0.5rem;">
+  <p><strong>Milestone:</strong> {{ milestone.title }}</p>
+  <p><strong>Student:</strong> {{ submission.student.username }}</p>
+  <p><strong>Team:</strong> {{ submission.team|default:"(none)" }}</p>
+  {% if submission.docs_url %}
+    <p><strong>Docs:</strong>
+      <a href="{{ submission.docs_url }}" target="_blank">
+        Open documentation
+      </a>
+    </p>
+  {% endif %}
+  {% if submission.notes %}
+    <p><strong>Notes from student:</strong><br>{{ submission.notes|linebreaks }}</p>
+  {% endif %}
+</div>
+
+<form method="post">
+  {% csrf_token %}
+  {{ formset.management_form }}
+
+  <table style="width:100%; border-collapse:collapse; margin-bottom:1rem;">
+    <thead>
+      <tr style="border-bottom:1px solid #cbd5e1;">
+        <th style="text-align:left; padding:0.4rem 0;">Criterion</th>
+        <th style="text-align:left; padding:0.4rem 0;">Max pts</th>
+        <th style="text-align:left; padding:0.4rem 0;">Weight</th>
+        <th style="text-align:left; padding:0.4rem 0;">Points</th>
+        <th style="text-align:left; padding:0.4rem 0;">Comment</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+        {% with crit=row.criterion form=row.form %}
+          <tr style="border-bottom:1px solid #e5e7eb; vertical-align:top;">
+            <td style="padding:0.4rem 0.2rem;">
+              <strong>{{ crit.label }}</strong>
+            </td>
+            <td style="padding:0.4rem 0.2rem;">
+              {{ crit.max_points }}
+            </td>
+            <td style="padding:0.4rem 0.2rem;">
+              {{ crit.weight }}
+            </td>
+            <td style="padding:0.4rem 0.2rem; width:100px;">
+              {{ form.points }}
+              {{ form.non_field_errors }}
+            </td>
+            <td style="padding:0.4rem 0.2rem;">
+              {{ form.comment }}
+            </td>
+          </tr>
+        {% endwith %}
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <button type="submit" class="btn">
+    Save Scores
+  </button>
+</form>
+
+{% endblock %}

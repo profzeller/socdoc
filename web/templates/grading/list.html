@@ -1,20 +1,42 @@
 {% extends "_base.html" %}
-{% block title %}Grading{% endblock %}
+{% block title %}Milestones{% endblock %}
+
 {% block content %}
 <h1>Milestones</h1>
-<ul>
+
+<div class="milestone-list">
   {% for m in milestones %}
-    <li>
-      {{ m.title }}
-      {% if m.id in submitted_ids %}
-        ✅ Submitted
-      {% else %}
-        <a href="{% url 'grading:submit' %}?milestone={{ m.id }}">Submit</a>
-      {% endif %}
-    </li>
+    <div class="milestone-item">
+      <div class="milestone-title">
+        <strong>{{ m.title }}</strong>
+        {% if m.due_date %}
+          <span class="milestone-due">· Due {{ m.due_date }}</span>
+        {% endif %}
+      </div>
+
+      <div class="milestone-actions">
+        {% if m.id in submitted_ids %}
+          <span class="badge badge-success">Submitted ✓</span>
+        {% else %}
+          <a href="{% url 'grading:submit' %}?milestone={{ m.id }}" class="btn-sm">
+            Submit Work
+          </a>
+        {% endif %}
+
+        {% if request.user.is_staff %}
+          <a href="{% url 'grading:milestone_submissions' m.id %}" class="btn-sm btn-staff">
+            View Submissions
+          </a>
+        {% endif %}
+      </div>
+    </div>
   {% endfor %}
-</ul>
+</div>
+
 {% if request.user.is_staff %}
-  <p><a href="{% url 'grading:export' %}">Export CSV</a></p>
+  <hr style="margin-top:2rem;">
+  <p>
+    <a href="{% url 'grading:export' %}" class="btn">📄 Export Grades (CSV)</a>
+  </p>
 {% endif %}
 {% endblock %}

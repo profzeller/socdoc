@@ -5,7 +5,9 @@ from .views import (
     view_scores,
     export_csv,
     team_matrix,
-    submit_from_doc,   # <-- NEW
+    submit_from_doc,
+    milestone_submissions,   # NEW
+    grade_submission,        # NEW
 )
 
 app_name = "grading"
@@ -17,10 +19,18 @@ urlpatterns = [
     path("export.csv", export_csv, name="export"),
     path("teams/", team_matrix, name="teams"),
 
-    # NEW: submit a DocPage for a milestone
+    # submit a DocPage for a milestone
+    path("submit-from-doc/<slug:slug>/", submit_from_doc, name="submit_from_doc"),
+
+    # NEW: instructor grading screens
     path(
-        "submit-from-doc/<slug:slug>/",
-        submit_from_doc,
-        name="submit_from_doc"
+        "milestone/<int:pk>/submissions/",
+        milestone_submissions,
+        name="milestone_submissions",
+    ),
+    path(
+        "submission/<int:pk>/grade/",
+        grade_submission,
+        name="grade_submission",
     ),
 ]

@@ -1,0 +1,56 @@
+{% extends "_base.html" %}
+{% block title %}Submissions – {{ milestone.title }}{% endblock %}
+
+{% block content %}
+<h1>Submissions for "{{ milestone.title }}"</h1>
+
+<p>
+  <a href="{% url 'grading:list' %}">← Back to milestones</a>
+</p>
+
+{% if submissions %}
+  <table style="width:100%; border-collapse:collapse; margin-top:1rem;">
+    <thead>
+      <tr style="border-bottom:1px solid #cbd5e1;">
+        <th style="text-align:left; padding:0.3rem 0;">Student</th>
+        <th style="text-align:left; padding:0.3rem 0;">Team</th>
+        <th style="text-align:left; padding:0.3rem 0;">Score</th>
+        <th style="text-align:left; padding:0.3rem 0;">Graded?</th>
+        <th style="text-align:left; padding:0.3rem 0;">Docs</th>
+        <th style="text-align:left; padding:0.3rem 0;"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in submissions %}
+        <tr style="border-bottom:1px solid #e5e7eb;">
+          <td style="padding:0.3rem 0;">{{ s.student.username }}</td>
+          <td style="padding:0.3rem 0;">{{ s.team|default:"(none)" }}</td>
+          <td style="padding:0.3rem 0;">{{ s.score|default:"—" }}</td>
+          <td style="padding:0.3rem 0;">
+            {% if s.graded %}
+              ✅
+            {% else %}
+              —
+            {% endif %}
+          </td>
+          <td style="padding:0.3rem 0;">
+            {% if s.docs_url %}
+              <a href="{{ s.docs_url }}" target="_blank">View doc</a>
+            {% else %}
+              —
+            {% endif %}
+          </td>
+          <td style="padding:0.3rem 0;">
+            <a href="{% url 'grading:grade_submission' s.pk %}" class="btn-sm btn-staff">
+              Grade
+            </a>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p>No submissions yet for this milestone.</p>
+{% endif %}
+
+{% endblock %}

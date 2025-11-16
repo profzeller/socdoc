@@ -128,8 +128,8 @@ body {
 
 /* Logout button styled like a link chip */
 .logout-form {
-  display: inline;            /* already there is fine */
-  margin: 0;                  /* <-- ensure no default margin */
+  display: inline;
+  margin: 0;
 }
 
 .logout-btn {
@@ -140,7 +140,7 @@ body {
   font-size: 1rem;
   padding: 2px 6px;
   border-radius: 6px;
-  margin: 0;                  /* <-- remove left/right margins */
+  margin: 0;
 }
 .logout-btn:hover {
   background: rgba(148,163,184,0.15);
@@ -164,6 +164,26 @@ button, input[type=submit] {
   transition: background 0.2s ease;
 }
 button:hover, input[type=submit]:hover { background: var(--button-hover); }
+
+/* Generic button utility for links (used in docs + grading) */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.45rem 0.9rem;
+  border-radius: 6px;
+  background: var(--button-bg);
+  color: var(--nav-text);
+  text-decoration: none;
+  font-size: 0.9rem;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.btn:hover {
+  background: var(--button-hover);
+  text-decoration: none;
+}
 
 /* Form elements */
 form { margin-top: 1rem; }
@@ -466,4 +486,83 @@ body.dark .md-preview-toggle {
 
 .alert-close:hover {
   opacity: 0.7;
+}
+
+/* =========================
+   Milestone list (grading)
+========================= */
+
+.milestone-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.milestone-item {
+  background: var(--bg);
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+body.dark .milestone-item {
+  border-color: #334155;
+}
+
+.milestone-title {
+  font-size: 1.05rem;
+}
+
+.milestone-due {
+  color: #64748b;
+  font-size: 0.9rem;
+  margin-left: 0.35rem;
+}
+
+/* small badge for "Submitted" state */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.badge-success {
+  background: #16a34a;
+  color: #ffffff;
+}
+
+/* small buttons used next to milestones */
+.btn-sm {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  background: var(--button-bg);
+  color: var(--nav-text);
+  text-decoration: none;
+  font-size: 0.8rem;
+  border: none;
+  cursor: pointer;
+  margin-left: 0.4rem;
+  transition: background 0.2s ease;
+}
+
+.btn-sm:hover {
+  background: var(--button-hover);
+  text-decoration: none;
+}
+
+.btn-staff {
+  background: #475569;
+}
+
+.btn-staff:hover {
+  background: #1f2933;
 }
