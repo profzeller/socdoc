@@ -1,7 +1,221 @@
-<h1>New Diagram</h1>
-<form method="post" enctype="multipart/form-data">
+{% extends "_base.html" %}
+{% block title %}{% if diagram %}Edit Diagram{% else %}New Diagram{% endif %}{% endblock %}
+
+{% block content %}
+<h1>{% if diagram %}Edit Diagram{% else %}New Diagram{% endif %}</h1>
+
+<p style="color:#64748b;font-size:.95rem;">
+  Upload a diagram image and/or link to your external diagram (draw.io, Lucidchart, Excalidraw, etc.),
+  then describe it in Markdown.
+</p>
+
+<form method="post" enctype="multipart/form-data" id="diagram-form">
   {% csrf_token %}
-  {{ form.as_p }}
-  <p>Tip: Build in FossFlow first, paste its URL here, or upload a PNG/SVG export.</p>
-  <button type="submit">Save</button>
+  {{ form.non_field_errors }}
+
+  <p>
+    {{ form.title.label_tag }}<br>
+    {{ form.title }}
+    {% for err in form.title.errors %}
+      <span class="auth-error">{{ err }}</span>
+    {% endfor %}
+  </p>
+
+  <p>
+    {{ form.image.label_tag }}<br>
+    {{ form.image }}
+    {% if form.image.help_text %}
+      <br><small style="color:#64748b;">{{ form.image.help_text }}</small>
+    {% endif %}
+    {% for err in form.image.errors %}
+      <span class="auth-error">{{ err }}</span>
+    {% endfor %}
+  </p>
+
+  <p>
+    {{ form.external_url.label_tag }}<br>
+    {{ form.external_url }}
+    {% if form.external_url.help_text %}
+      <br><small style="color:#64748b;">{{ form.external_url.help_text }}</small>
+    {% endif %}
+    {% for err in form.external_url.errors %}
+      <span class="auth-error">{{ err }}</span>
+    {% endfor %}
+  </p>
+
+  {# Markdown editor for notes #}
+  <div class="md-editor" data-diagram-key="{{ diagram.pk|default_if_none:'' }}">
+    <div class="md-editor-main">
+
+      <div class="md-editor-header">
+        <label for="id_notes"><strong>Notes (Markdown)</strong></label>
+        <button type="button" id="toggle-preview" class="md-preview-toggle">
+          Show Preview
+        </button>
+      </div>
+
+      <div class="md-toolbar">
+        <button type="button" data-md="h1">H1</button>
+        <button type="button" data-md="h2">H2</button>
+        <button type="button" data-md="bold"><strong>B</strong></button>
+        <button type="button" data-md="italic"><em>I</em></button>
+        <button type="button" data-md="ul">• List</button>
+        <button type="button" data-md="code">{"</>"}</button>
+      </div>
+
+      {{ form.notes }}
+
+      {% for err in form.notes.errors %}
+        <span class="auth-error">{{ err }}</span>
+      {% endfor %}
+
+      <small style="color:#64748b; display:block; margin-top:0.25rem;">
+        Write this explanation in <strong>Markdown format</strong>.<br>
+        Need help?
+        <a href="https://www.markdownguide.org/basic-syntax/" target="_blank">Markdown Basics</a> or
+        <a href="https://github.github.com/gfm/" target="_blank">GitHub-Flavored Markdown</a>.
+      </small>
+
+      <p id="autosave-status" class="autosave-status"></p>
+    </div>
+
+    <div class="md-preview">
+      <div class="md-preview-inner" id="md-preview">
+        <!-- Live preview goes here -->
+      </div>
+    </div>
+  </div>
+
+  <button type="submit">
+    {% if diagram %}Save Changes{% else %}Create Diagram{% endif %}
+  </button>
 </form>
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+<script>
+  (function () {
+    const textarea = document.getElementById('id_notes');
+    if (!textarea) return;
+
+    const preview = document.getElementById('md-preview');
+    const editor = document.querySelector('.md-editor');
+    const status = document.getElementById('autosave-status');
+    const previewToggle = document.getElementById('toggle-preview');
+    const previewColumn = preview ? preview.parentElement : null;
+
+    const storageKeyBase = 'socdocs-diagram-notes-';
+    const diagramKeyAttr = editor ? editor.getAttribute('data-diagram-key') : '';
+    const storageKey = storageKeyBase + (diagramKeyAttr || window.location.pathname);
+
+    // Preview visibility (default off)
+    let previewVisible = false;
+    if (previewColumn) {
+      previewColumn.style.display = 'none';
+    }
+    if (previewToggle) {
+      previewToggle.addEventListener('click', function () {
+        previewVisible = !previewVisible;
+        if (previewColumn) {
+          previewColumn.style.display = previewVisible ? 'block' : 'none';
+        }
+        previewToggle.textContent = previewVisible ? 'Hide Preview' : 'Show Preview';
+      });
+    }
+
+    // Load draft
+    const savedDraft = localStorage.getItem(storageKey);
+    if (savedDraft && !textarea.value) {
+      textarea.value = savedDraft;
+    }
+
+    function renderPreview() {
+      if (!preview) return;
+      if (typeof marked !== 'undefined') {
+        preview.innerHTML = marked.parse(textarea.value || '');
+      } else {
+        preview.textContent = textarea.value || '';
+      }
+    }
+
+    let saveTimeout = null;
+    function scheduleAutosave() {
+      if (saveTimeout) clearTimeout(saveTimeout);
+      saveTimeout = setTimeout(function () {
+        localStorage.setItem(storageKey, textarea.value || '');
+        if (status) {
+          const now = new Date();
+          const t = now.toLocaleTimeString();
+          status.textContent = 'Draft saved at ' + t;
+        }
+      }, 600);
+    }
+
+    textarea.addEventListener('input', function () {
+      renderPreview();
+      scheduleAutosave();
+    });
+
+    function wrapSelection(before, after) {
+      const start = textarea.selectionStart || 0;
+      const end = textarea.selectionEnd || 0;
+      const value = textarea.value;
+      const selected = value.slice(start, end);
+      const newText = before + selected + (after != null ? after : '');
+      textarea.setRangeText(newText, start, end, 'end');
+      textarea.dispatchEvent(new Event('input'));
+      textarea.focus();
+    }
+
+    function insertLinePrefix(prefix) {
+      const start = textarea.selectionStart || 0;
+      const end = textarea.selectionEnd || 0;
+      const value = textarea.value;
+      const before = value.slice(0, start);
+      const selected = value.slice(start, end) || 'List item';
+      const after = value.slice(end);
+
+      const lines = selected.split('\n').map(l => {
+        return l.trim() ? prefix + ' ' + l.trim() : prefix + ' ';
+      });
+      const newBlock = lines.join('\n');
+
+      textarea.value = before + newBlock + after;
+      const newCursor = before.length + newBlock.length;
+      textarea.setSelectionRange(newCursor, newCursor);
+      textarea.dispatchEvent(new Event('input'));
+      textarea.focus();
+    }
+
+    document.querySelectorAll('.md-toolbar button[data-md]').forEach(btn => {
+      btn.addEventListener('click', function () {
+        const action = this.getAttribute('data-md');
+        switch (action) {
+          case 'h1':
+            insertLinePrefix('#');
+            break;
+          case 'h2':
+            insertLinePrefix('##');
+            break;
+          case 'bold':
+            wrapSelection('**', '**');
+            break;
+          case 'italic':
+            wrapSelection('*', '*');
+            break;
+          case 'ul':
+            insertLinePrefix('-');
+            break;
+          case 'code':
+            wrapSelection('\n```bash\n', '\n```\n');
+            break;
+        }
+      });
+    });
+
+    // Initial render
+    renderPreview();
+  })();
+</script>
+
+{% endblock %}

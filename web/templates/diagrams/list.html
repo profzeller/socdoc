@@ -1,13 +1,71 @@
 {% extends "_base.html" %}
 {% block title %}Diagrams{% endblock %}
+
 {% block content %}
-<h1>System Diagrams</h1>
-<ul>
-  {% for d in diagrams %}
-    <li><a href="{{ d.link }}">{{ d.title }}</a></li>
-  {% empty %}
-    <li>No diagrams yet.</li>
-  {% endfor %}
-</ul>
-<p><a href="{% url 'diagrams:new' %}">Add Diagram</a></p>
+<h1>Diagrams</h1>
+
+<p>
+  This area is for network / SOC architecture diagrams.
+  Teams can maintain their own diagrams and optionally publish them to the class.
+</p>
+
+{# Team section: visible only if user is on a team #}
+{% if user.is_authenticated and user_team %}
+  <section style="margin-top:1.5rem;">
+    <h2>Your Team’s Diagrams ({{ user_team.name }})</h2>
+    <p>
+      <a href="{% url 'diagrams:create' %}" class="btn">➕ New diagram</a>
+    </p>
+
+    {% if team_diagrams %}
+      <ul>
+        {% for d in team_diagrams %}
+          <li>
+            <a href="{% url 'diagrams:detail' d.pk %}">{{ d.title }}</a>
+            {% if d.approved %}
+              <span class="badge badge-success" style="margin-left:0.35rem;">
+                Published
+              </span>
+            {% else %}
+              <span class="badge" style="margin-left:0.35rem;background:#e5e7eb;color:#374151;">
+                Draft / team-only
+              </span>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p style="color:#64748b;">
+        Your team doesn’t have any diagrams yet. Start by creating one.
+      </p>
+    {% endif %}
+  </section>
+{% elif user.is_authenticated %}
+  <p style="margin-top:1rem;color:#64748b;">
+    You are not currently assigned to a team. Ask your instructor if this seems wrong.
+  </p>
+{% endif %}
+
+<hr style="margin:2rem 0; border:none; border-top:1px solid #e2e8f0;" />
+
+<section>
+  <h2>Class Diagrams</h2>
+  {% if published %}
+    <ul>
+      {% for d in published %}
+        <li>
+          <a href="{% url 'diagrams:detail' d.pk %}">{{ d.title }}</a>
+          {% if d.team %}
+            <span style="font-size:.85rem;color:#0f766e;">
+              (Team: {{ d.team.name }})
+            </span>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No diagrams have been published to the class yet.</p>
+  {% endif %}
+</section>
+
 {% endblock %}
