@@ -1,11 +1,17 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+# ⬇️ add this import at top
+# (string reference also works, so this import is *optional* but nice)
+# from docs.models import DocPage
+
+
 class Team(models.Model):
     name = models.CharField(max_length=64, unique=True)
     members = models.ManyToManyField(User, related_name="teams", blank=True)
     def __str__(self):
         return self.name
+
 
 class Milestone(models.Model):
     title = models.CharField(max_length=200)
@@ -15,6 +21,7 @@ class Milestone(models.Model):
     def __str__(self):
         return self.title
 
+
 class Criterion(models.Model):
     milestone = models.ForeignKey(Milestone, on_delete=models.CASCADE, related_name="criteria")
     label = models.CharField(max_length=200)
@@ -23,9 +30,20 @@ class Criterion(models.Model):
     def __str__(self):
         return f"{self.milestone.title} · {self.label}"
 
+
 class Submission(models.Model):
     milestone = models.ForeignKey(Milestone, on_delete=models.CASCADE, related_name="submissions")
     student = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    # 🔗 NEW: link a submission to a specific documentation page
+    doc_page = models.ForeignKey(
+        "docs.DocPage",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="submissions",
+    )
+
     team = models.ForeignKey(Team, on_delete=models.SET_NULL, null=True, blank=True, related_name="submissions")
     notes = models.TextField(blank=True)
     docs_url = models.URLField(blank=True)
@@ -41,12 +59,14 @@ class Submission(models.Model):
     def __str__(self):
         return f"{self.student.username} – {self.milestone.title}"
 
+
 class Evidence(models.Model):
     submission = models.ForeignKey(Submission, on_delete=models.CASCADE, related_name="evidence")
     title = models.CharField(max_length=200)
     link = models.URLField(blank=True)
     file = models.FileField(upload_to="evidence/", blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
 
 class CriterionScore(models.Model):
     submission = models.ForeignKey(Submission, on_delete=models.CASCADE, related_name="criterion_scores")

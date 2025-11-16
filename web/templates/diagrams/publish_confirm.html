@@ -1,0 +1,25 @@
+{% extends "_base.html" %}
+{% block title %}Publish Diagram{% endblock %}
+
+{% block content %}
+<h1>Publish diagram</h1>
+
+<p>
+  You are about to publish
+  <strong>{{ diagram.title }}</strong>
+  to the whole class.
+</p>
+
+<p style="color:#64748b;font-size:.95rem;">
+  Once published, this diagram will be visible to all students.
+  Your team (and instructors) will still be able to edit it.
+</p>
+
+<form method="post">
+  {% csrf_token %}
+  <button type="submit" class="btn">✅ Yes, publish to class</button>
+  <a href="{% url 'diagrams:detail' diagram.pk %}" class="btn" style="margin-left:.5rem;">
+    Cancel
+  </a>
+</form>
+{% endblock %}

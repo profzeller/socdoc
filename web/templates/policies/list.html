@@ -1,13 +1,89 @@
 {% extends "_base.html" %}
-{% block title %}Policies{% endblock %}
+{% block title %}Policies & Procedures{% endblock %}
+
 {% block content %}
-<h1>Policies</h1>
-<ul>
-  {% for policy in policies %}
-    <li><a href="{% url 'policies:detail' policy.slug %}">{{ policy.title }}</a></li>
-  {% empty %}
-    <li>No policies created yet.</li>
+<h1>Policies & Procedures</h1>
+
+<p style="color:#64748b;font-size:.95rem;max-width:60rem;">
+  This area is for team-written SOC policies and procedures. Drafts stay visible
+  to your team until they’re published to the class.
+</p>
+
+{# -------------------- PUBLISHED POLICIES (class/global) -------------------- #}
+{% if grouped %}
+  {% for category, plist in grouped.items %}
+    <section style="margin-top:1.5rem;">
+      <h2 style="margin-bottom:.5rem;">{{ category }}</h2>
+      <ul>
+        {% for policy in plist %}
+          <li>
+            <a href="{% url 'policies:detail' policy.slug %}">
+              {{ policy.title }}
+            </a>
+            <span style="font-size:.85rem;color:#64748b;">
+              · v{{ policy.version }}
+              {% if policy.team %}
+                · Team {{ policy.team.name }}
+              {% endif %}
+            </span>
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
   {% endfor %}
-</ul>
-<p><a href="{% url 'policies:new' %}">Add Policy</a></p>
+{% else %}
+  <p>No published policies yet.</p>
+{% endif %}
+
+{# -------------------- TEAM DRAFTS (only if logged in) -------------------- #}
+{% if request.user.is_authenticated %}
+  <hr style="margin:2rem 0;">
+
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;">
+    <h2 style="margin:0;">Your team’s drafts</h2>
+    <a href="{% url 'policies:create' %}" class="btn">
+      ➕ New Policy / Procedure
+    </a>
+  </div>
+
+  {% if team_drafts %}
+    <ul style="margin-top:0.75rem;">
+      {% for policy in team_drafts %}
+        <li>
+          <a href="{% url 'policies:detail' policy.slug %}">
+            {{ policy.title }}
+          </a>
+          <span style="font-size:.85rem;color:#64748b;">
+            · v{{ policy.version }}
+            {% if not policy.approved %}
+              · Draft
+            {% endif %}
+            {% if policy.visibility == "team" %}
+              · Team-only
+            {% elif policy.visibility == "class" %}
+              · Published to class
+            {% endif %}
+          </span>
+
+          {# Optional quick edit link for owner/staff #}
+          {% if request.user.is_staff or request.user == policy.owner %}
+            <a href="{% url 'policies:edit' policy.slug %}"
+               style="margin-left:.5rem;font-size:.85rem;">
+              Edit
+            </a>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p style="margin-top:.5rem;color:#64748b;font-size:.9rem;">
+      No drafts for your team yet. Use “New Policy / Procedure” to create one.
+    </p>
+  {% endif %}
+{% else %}
+  <p style="margin-top:2rem;font-size:.9rem;color:#64748b;">
+    <a href="{% url 'account_login' %}">Sign in</a> to create or edit policies for your team.
+  </p>
+{% endif %}
+
 {% endblock %}

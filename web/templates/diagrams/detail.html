@@ -1,16 +1,100 @@
-<h1>{{ d.title }}</h1>
-<p>By {{ d.owner.username }} on {{ d.created_at }}</p>
-{% if d.fossflow_url %}
-  <p><a href="{{ d.fossflow_url }}" target="_blank">Open in FossFlow</a></p>
-  <iframe src="{{ d.fossflow_url }}" style="width:100%;height:70vh;border:1px solid #e5e7eb;border-radius:.5rem;"></iframe>
+{% extends "_base.html" %}
+{% block title %}{{ diagram.title }}{% endblock %}
+
+{% block content %}
+<h1>{{ diagram.title }}</h1>
+
+<p style="color:#94a3b8;font-size:.9rem;">
+  {% if diagram.team %}
+    Team: <strong>{{ diagram.team.name }}</strong>
+    {% if diagram.visibility == "team" %}
+      · <span>Team-only</span>
+    {% elif diagram.visibility == "class" %}
+      · <span>Published to class</span>
+    {% else %}
+      · <span>Global</span>
+    {% endif %}
+  {% else %}
+    Global diagram
+    {% if diagram.visibility == "class" %}
+      · Published to class
+    {% endif %}
+  {% endif %}
+  · Last updated {{ diagram.updated_at|date:"Y-m-d H:i" }}
+  {% if diagram.owner %}
+    · by {{ diagram.owner.username }}
+  {% endif %}
+</p>
+
+{# Diagram image / link #}
+{% if diagram.image %}
+  <figure style="margin:1rem 0;">
+    <img src="{{ diagram.image.url }}" alt="{{ diagram.title }}"
+         style="max-width:100%;border-radius:0.5rem;border:1px solid #e2e8f0;">
+    <figcaption style="font-size:.85rem;color:#64748b;margin-top:0.25rem;">
+      Diagram uploaded by {{ diagram.owner.username }}
+    </figcaption>
+  </figure>
 {% endif %}
 
-{% if d.image %}
-  <p><img src="{{ d.image.url }}" alt="{{ d.title }}" style="max-width:100%;height:auto;border:1px solid #e5e7eb;border-radius:.5rem;"></p>
+
+{% if diagram.external_url %}
+  <p>
+    <a href="{{ diagram.external_url }}" target="_blank" rel="noopener" class="btn">
+      Open external diagram
+    </a>
+  </p>
 {% endif %}
 
-{% if d.notes %}
-  <pre style="white-space:pre-wrap">{{ d.notes }}</pre>
+{% if diagram.notes %}
+  <h2 style="margin-top:1.75rem;">Notes & Explanation</h2>
+  <div class="markdown-body">
+    {{ diagram.html_notes|safe }}
+  </div>
 {% endif %}
 
-<p><a href="{% url 'diagrams:list' %}">← Back</a></p>
+{# Actions: Edit / Publish #}
+<div style="margin-top:1.5rem; display:flex; gap:.75rem; flex-wrap:wrap;">
+
+  {# Staff: can always edit, can publish when team-only #}
+  {% if user.is_authenticated and user.is_staff %}
+    <a href="{% url 'diagrams:edit' diagram.pk %}" class="btn">
+      ✏️ Edit
+    </a>
+
+    {% if diagram.visibility == "team" %}
+      <form action="{% url 'diagrams:publish' diagram.pk %}" method="post" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit" class="btn">
+          🌐 Publish to class
+        </button>
+      </form>
+    {% endif %}
+
+  {% else %}
+    {# Team members: can always edit their team’s diagram, even after publish #}
+    {% if user.is_authenticated and user.profile.team and diagram.team == user.profile.team %}
+      <a href="{% url 'diagrams:edit' diagram.pk %}" class="btn">
+        ✏️ Edit
+      </a>
+
+      {% if diagram.visibility == "team" %}
+        <form action="{% url 'diagrams:publish' diagram.pk %}" method="post" style="display:inline;">
+          {% csrf_token %}
+          <button type="submit" class="btn">
+            🌐 Publish to class
+          </button>
+        </form>
+      {% else %}
+        <span style="font-size:.9rem;color:#94a3b8;">
+          Visible to the whole class. Instructors can adjust visibility if needed.
+        </span>
+      {% endif %}
+    {% endif %}
+  {% endif %}
+</div>
+
+<p style="margin-top:1.5rem;">
+  <a href="{% url 'diagrams:list' %}">← Back to diagrams</a>
+</p>
+{% endblock %}

@@ -1,3 +1,4 @@
+{# templates/docs/index.html #}
 {% extends "_base.html" %}
 {% block title %}Docs{% endblock %}
 
@@ -8,41 +9,49 @@
   <p><a href="{% url 'docs:create' %}">➕ Create New Page</a></p>
 {% endif %}
 
+{% if user.is_authenticated and team_pages %}
+  <h2>My Team Docs</h2>
+  <ul>
+    {% for p in team_pages %}
+      <li>
+        <a href="{% url 'docs:detail' p.slug %}">{{ p.title }}</a>
+        {% if p.visibility == "team" %}
+          <span style="color:#b45309;font-size:.85rem;">(team-only)</span>
+        {% else %}
+          <span style="color:#0f766e;font-size:.85rem;">(published to class)</span>
+        {% endif %}
+        {% if p.category %}
+          · <span style="font-size:.85rem;color:#64748b;">{{ p.category.name }}</span>
+        {% endif %}
+      </li>
+    {% empty %}
+      <li>No docs for your team yet.</li>
+    {% endfor %}
+  </ul>
+{% endif %}
+
+<h2>Published Class Docs</h2>
+
 {% if categories %}
-  <h2>By Category</h2>
   {% for cat in categories %}
     <h3>{{ cat.name }}</h3>
     <ul>
-      {% for p in pages %}
+      {% for p in public_pages %}
         {% if p.category_id == cat.id %}
           <li>
-            <a href="{% url 'docs:view' p.slug %}">{{ p.title }}</a>
+            <a href="{% url 'docs:detail' p.slug %}">{{ p.title }}</a>
             {% if p.team %}
               <span style="color:#0f766e;font-size:.85rem;">(Team: {{ p.team.name }})</span>
             {% endif %}
           </li>
         {% endif %}
       {% empty %}
-        <li>No pages yet.</li>
+        <li>No docs published yet.</li>
       {% endfor %}
     </ul>
   {% endfor %}
+{% else %}
+  <p>No documentation pages yet.</p>
 {% endif %}
 
-<h2>All Pages</h2>
-<ul>
-  {% for p in pages %}
-    <li>
-      <a href="{% url 'docs:view' p.slug %}">{{ p.title }}</a>
-      {% if p.category %}
-        <span style="color:#64748b;font-size:.85rem;">[{{ p.category.name }}]</span>
-      {% endif %}
-      {% if p.team %}
-        <span style="color:#0f766e;font-size:.85rem;">(Team: {{ p.team.name }})</span>
-      {% endif %}
-    </li>
-  {% empty %}
-    <li>No documentation pages yet.</li>
-  {% endfor %}
-</ul>
 {% endblock %}

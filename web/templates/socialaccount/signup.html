@@ -1,0 +1,45 @@
+{% extends "_base.html" %}
+{% load i18n %}
+
+{% block title %}Sign Up{% endblock %}
+
+{% block content %}
+<div class="auth-center">
+  <h1>Sign up</h1>
+
+  <p style="margin-bottom:1rem;">
+    You are about to use your Discord account to log in to SOC Docs.
+    To complete signup, please enter the class code you were given.
+  </p>
+
+  <form method="post" action="">
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+      <div class="auth-error">
+        {{ form.non_field_errors }}
+      </div>
+    {% endif %}
+
+    <div style="margin-bottom:1rem;">
+      {{ form.class_code.label_tag }}
+      {{ form.class_code }}
+      {% if form.class_code.errors %}
+        <div class="auth-error">{{ form.class_code.errors }}</div>
+      {% endif %}
+    </div>
+
+    {# render hidden fields like email/username etc. #}
+    {% for field in form.hidden_fields %}
+      {{ field }}
+    {% endfor %}
+
+    <button type="submit">Sign Up</button>
+  </form>
+
+  <div class="auth-foot">
+    Already have an account?
+    <a href="{% url 'account_login' %}">Sign in</a>
+  </div>
+</div>
+{% endblock %}

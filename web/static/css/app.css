@@ -128,8 +128,8 @@ body {
 
 /* Logout button styled like a link chip */
 .logout-form {
-  display: inline;            /* already there is fine */
-  margin: 0;                  /* <-- ensure no default margin */
+  display: inline;
+  margin: 0;
 }
 
 .logout-btn {
@@ -140,7 +140,7 @@ body {
   font-size: 1rem;
   padding: 2px 6px;
   border-radius: 6px;
-  margin: 0;                  /* <-- remove left/right margins */
+  margin: 0;
 }
 .logout-btn:hover {
   background: rgba(148,163,184,0.15);
@@ -164,6 +164,26 @@ button, input[type=submit] {
   transition: background 0.2s ease;
 }
 button:hover, input[type=submit]:hover { background: var(--button-hover); }
+
+/* Generic button utility for links (used in docs + grading) */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.45rem 0.9rem;
+  border-radius: 6px;
+  background: var(--button-bg);
+  color: var(--nav-text);
+  text-decoration: none;
+  font-size: 0.9rem;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.btn:hover {
+  background: var(--button-hover);
+  text-decoration: none;
+}
 
 /* Form elements */
 form { margin-top: 1rem; }
@@ -304,10 +324,9 @@ body.dark .btn-discord:hover {
 .auth-foot { margin-top: 1rem; font-size: .9rem; }
 
 .messages {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 1rem 0;
+  margin-bottom: 1rem;
 }
+
 .message {
   padding: 0.5rem 0.75rem;
   border-radius: 0.4rem;
@@ -423,4 +442,163 @@ body.dark .md-preview-toggle {
 .md-preview-toggle:hover {
   background: var(--button-bg);
   color: var(--nav-text);
+}
+
+.alert {
+  position: relative;
+  padding: 0.6rem 2rem 0.6rem 0.75rem;
+  border-radius: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+  background: rgba(59, 130, 246, 0.1); /* default info */
+  color: var(--fg);
+}
+
+/* Variants based on Django message tags */
+.alert-success {
+  background: rgba(34, 197, 94, 0.12);
+}
+
+.alert-error,
+.alert-danger {
+  background: rgba(239, 68, 68, 0.12);
+}
+
+.alert-warning {
+  background: rgba(234, 179, 8, 0.12);
+}
+
+.alert-info {
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.alert-close {
+  position: absolute;
+  right: 0.5rem;
+  top: 0.3rem;
+  border: none;
+  background: none;
+  color: inherit;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 0;
+}
+
+.alert-close:hover {
+  opacity: 0.7;
+}
+
+/* =========================
+   Milestone list (grading)
+========================= */
+
+.milestone-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.milestone-item {
+  background: var(--bg);
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+body.dark .milestone-item {
+  border-color: #334155;
+}
+
+.milestone-title {
+  font-size: 1.05rem;
+}
+
+.milestone-due {
+  color: #64748b;
+  font-size: 0.9rem;
+  margin-left: 0.35rem;
+}
+
+/* small badge for "Submitted" state */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.badge-success {
+  background: #16a34a;
+  color: #ffffff;
+}
+
+/* small buttons used next to milestones */
+.btn-sm {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  background: var(--button-bg);
+  color: var(--nav-text);
+  text-decoration: none;
+  font-size: 0.8rem;
+  border: none;
+  cursor: pointer;
+  margin-left: 0.4rem;
+  transition: background 0.2s ease;
+}
+
+.btn-sm:hover {
+  background: var(--button-hover);
+  text-decoration: none;
+}
+
+.btn-staff {
+  background: #475569;
+}
+
+.btn-staff:hover {
+  background: #1f2933;
+}
+
+/* Optional: nicer spacing for rendered Markdown blocks */
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3 {
+  margin-top: 1.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.markdown-body p {
+  margin: 0.4rem 0;
+}
+
+.markdown-body ul,
+.markdown-body ol {
+  margin: 0.5rem 0 0.5rem 1.25rem;
+}
+
+.markdown-body code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.9em;
+  background: rgba(148, 163, 184, 0.25);
+  padding: 0 0.2rem;
+  border-radius: 3px;
+}
+
+.markdown-body pre {
+  background: #0f172a10;
+  padding: 0.75rem;
+  border-radius: 6px;
+  overflow-x: auto;
+}
+
+body.dark .markdown-body pre {
+  background: rgba(15, 23, 42, 0.8);
 }

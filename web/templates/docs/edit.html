@@ -19,11 +19,12 @@
   </p>
 
   {% if form.new_category %}
-  <p>
+  <p id="new-category-wrapper" style="display:none;">
     {{ form.new_category.label_tag }}<br>
     {{ form.new_category }}
     <small style="color:#64748b;">
-      (Optional — enter a new category name if you want to create one)
+      When you choose <strong>“➕ Create new category…”</strong> above,
+      enter the new category name here (e.g. <em>SIEM</em>, <em>Endpoints</em>, <em>Network Architecture</em>).
     </small>
   </p>
   {% endif %}
@@ -47,7 +48,7 @@
         <button type="button" data-md="bold"><strong>B</strong></button>
         <button type="button" data-md="italic"><em>I</em></button>
         <button type="button" data-md="ul">• List</button>
-        <button type="button" data-md="code">{"</>"}</button>
+        <button type="button" data-md="code">{</>}</button>
       </div>
 
       {{ form.body }}
@@ -203,6 +204,27 @@
 
     // Initial render (even if preview is hidden)
     renderPreview();
+  })();
+</script>
+
+<script>
+  // Show/hide "New Category" field based on dropdown selection
+  (function () {
+    const select = document.getElementById("id_category");
+    const wrapper = document.getElementById("new-category-wrapper");
+    if (!select || !wrapper) return;
+
+    function toggleNewCategory() {
+      if (select.value === "NEW") {
+        wrapper.style.display = "block";
+      } else {
+        wrapper.style.display = "none";
+      }
+    }
+
+    select.addEventListener("change", toggleNewCategory);
+    // Run once on load (important on edit forms or after validation errors)
+    toggleNewCategory();
   })();
 </script>
 

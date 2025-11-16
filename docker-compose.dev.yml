@@ -17,23 +17,27 @@ services:
     build: ./web
     # Dev server with auto-reload
     command: python manage.py runserver 0.0.0.0:8000
+
+    # Use .env for local secrets / settings
     env_file: .env
     environment:
       DJANGO_DEBUG: "True"
       DJANGO_ALLOWED_HOSTS: "localhost,127.0.0.1"
       DATABASE_URL: postgres://socuser:socpass@db:5432/socdocs
+
     depends_on:
       db:
         condition: service_healthy
+
     ports:
       - "8000:8000"
+
     volumes:
-      # Mount code for live editing
+      # Mount full web app for live editing (includes templates now)
       - ./web:/app
-      # Mount external templates folder
-      - ./templates:/app/templates
       # Media persists between runs
       - ./media:/app/media
+
     restart: unless-stopped
 
   fossflow:

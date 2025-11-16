@@ -10,12 +10,12 @@
     <div class="nav-left">
     <a href="/" class="brand">SOC Docs</a>
     <a href="/docs/">Docs</a>
-    <!-- # Temporarily hiding Policies & Diagrams for v1
     <a href="/policies/">Policies</a>
     <a href="/diagrams/">Diagrams</a>
-    -->
+    {% if FOSSFLOW_URL %}
+        <a href="{{ FOSSFLOW_URL }}" target="_blank" rel="noopener">Fossflow</a>
+    {% endif %}
     {% if user.is_staff %}
-      <a href="/moderation/">Moderation</a>
       <a href="/grading/">Grading</a>
     {% endif %}
   </div>
@@ -56,13 +56,22 @@
   </nav>
 
   <main class="page-content">
-      {% if messages %}
-        <ul class="messages">
-            {% for message in messages %}
-                <li class="message {{ message.tags }}">{{ message }}</li>
-            {% endfor %}
-        </ul>
-      {% endif %}
+
+    {% if messages %}
+      <div class="messages">
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags|default:"info" }}">
+            <span class="alert-text">{{ message }}</span>
+            <button type="button"
+                    class="alert-close"
+                    onclick="this.closest('.alert').style.display='none';">
+              &times;
+            </button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
     {% block content %}{% endblock %}
   </main>
 
