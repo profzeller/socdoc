@@ -22,39 +22,25 @@ def _user_team(user):
 
 
 def docs_index(request):
-    """
-    Visibility rules:
-      - Staff: see ALL docs.
-      - Auth student + team:
-            - Their team-only docs
-            - ANY published docs (visibility=class)
-      - Auth student w/o team:
-            - Only published docs (visibility=class)
-      - Anonymous:
-            - Only published docs (visibility=class)
-    """
-    qs = DocPage.objects.select_related("category", "team", "author")
+    qs = DocPage.objects.select_related("category", "team").order_by("title")
 
-    if request.user.is_staff:
-        pages = qs
-    else:
-        team = _user_team(request.user)
-        published = Q(visibility=DocPage.VISIBILITY_CLASS)
+    # Docs visible to the whole class (includes global docs with no team)
+    public_pages = qs.filter(visibility="class")
 
-        if team:
-            pages = qs.filter(published | Q(visibility=DocPage.VISIBILITY_TEAM, team=team))
-        else:
-            pages = qs.filter(published)
+    # Docs for the current user's team (team-only + published)
+    team_pages = None
+    profile = getattr(request.user, "profile", None)
+    if profile and profile.team_id:
+        team_pages = qs.filter(team=profile.team)
 
     categories = DocCategory.objects.order_by("name")
-    return render(
-        request,
-        "docs/index.html",
-        {
-            "pages": pages,
-            "categories": categories,
-        },
-    )
+
+    context = {
+        "categories": categories,
+        "public_pages": public_pages,
+        "team_pages": team_pages,
+    }
+    return render(request, "docs/index.html", context)
 
 
 def doc_view(request, slug):
