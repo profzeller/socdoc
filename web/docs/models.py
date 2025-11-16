@@ -2,8 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from markdownx.models import MarkdownxField
 from django.utils.text import slugify
-
-from accounts.models import Team   # 👈 NEW
+from accounts.models import Team
 
 
 class DocCategory(models.Model):
@@ -20,12 +19,39 @@ class DocCategory(models.Model):
 
 
 class DocPage(models.Model):
+    VISIBILITY_TEAM = "team"
+    VISIBILITY_CLASS = "class"  # published to whole class
+
+    VISIBILITY_CHOICES = [
+        (VISIBILITY_TEAM, "Team only"),
+        (VISIBILITY_CLASS, "Published to class"),
+    ]
+
     title = models.CharField(max_length=200)
     slug = models.SlugField(unique=True, blank=True)
-    category = models.ForeignKey(DocCategory, on_delete=models.SET_NULL, null=True, blank=True)
+    category = models.ForeignKey(
+        DocCategory,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
 
-    # 👇 NEW: doc is owned by a team
-    team = models.ForeignKey(Team, null=True, blank=True, on_delete=models.SET_NULL, related_name="docs")
+    # Which team owns this doc. Null = instructor/global doc.
+    team = models.ForeignKey(
+        Team,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="docs",
+        help_text="Leave blank for instructor/global docs.",
+    )
+
+    # NEW: who can see it
+    visibility = models.CharField(
+        max_length=10,
+        choices=VISIBILITY_CHOICES,
+        default=VISIBILITY_TEAM,
+    )
 
     body = MarkdownxField()
     author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)

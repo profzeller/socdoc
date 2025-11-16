@@ -4,6 +4,17 @@
 {% block content %}
 <h1>Documentation</h1>
 
+{% if user.is_authenticated and user.profile.team %}
+  <p style="color:#94a3b8;font-size:.9rem;">
+    You are on team <strong>{{ user.profile.team.name }}</strong>.
+    You can see your team’s docs and any pages published to the whole class.
+  </p>
+{% else %}
+  <p style="color:#94a3b8;font-size:.9rem;">
+    You are viewing pages published to the whole class.
+  </p>
+{% endif %}
+
 {% if user.is_authenticated %}
   <p><a href="{% url 'docs:create' %}">➕ Create New Page</a></p>
 {% endif %}
@@ -16,7 +27,7 @@
       {% for p in pages %}
         {% if p.category_id == cat.id %}
           <li>
-            <a href="{% url 'docs:view' p.slug %}">{{ p.title }}</a>
+            <a href="{% url 'docs:detail' p.slug %}">{{ p.title }}</a>
             {% if p.team %}
               <span style="color:#0f766e;font-size:.85rem;">(Team: {{ p.team.name }})</span>
             {% endif %}
@@ -33,7 +44,7 @@
 <ul>
   {% for p in pages %}
     <li>
-      <a href="{% url 'docs:view' p.slug %}">{{ p.title }}</a>
+      <a href="{% url 'docs:detail' p.slug %}">{{ p.title }}</a>
       {% if p.category %}
         <span style="color:#64748b;font-size:.85rem;">[{{ p.category.name }}]</span>
       {% endif %}

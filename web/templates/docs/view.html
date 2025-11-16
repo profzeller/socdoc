@@ -4,23 +4,67 @@
 {% block content %}
 <h1>{{ page.title }}</h1>
 
+{% if page.team %}
+  <p style="color:#94a3b8;font-size:.9rem;">
+    Team: <strong>{{ page.team.name }}</strong>
+    {% if page.visibility == "team" %}
+      · <span>Team-only</span>
+    {% else %}
+      · <span>Published to class</span>
+    {% endif %}
+  </p>
+{% else %}
+  <p style="color:#94a3b8;font-size:.9rem;">
+    Global doc
+    {% if page.visibility == "class" %}
+      · Published to class
+    {% endif %}
+  </p>
+{% endif %}
+
 <p style="color:#64748b;font-size:.9rem;">
   {% if page.category %}Category: {{ page.category.name }} · {% endif %}
   Last updated {{ page.updated_at|date:"Y-m-d H:i" }}
   {% if page.author %} · by {{ page.author.username }}{% endif %}
-  {% if page.team %} · Team: {{ page.team.name }}{% endif %}
 </p>
-
 
 <div class="markdown-body">
   {{ html|safe }}
 </div>
 
-{% if user.is_authenticated %}
-  {% if user.is_staff or user == page.author %}
-    <p style="margin-top:1rem;">
-      <a href="{% url 'docs:edit' page.slug %}">✏️ Edit this page</a>
-    </p>
+{# ACTIONS #}
+<div style="margin-top:1.25rem; display:flex; gap:.75rem; flex-wrap:wrap;">
+
+  {# 1) Staff: can always edit + can publish when team-only #}
+  {% if user.is_staff %}
+    <a href="{% url 'docs:edit' page.slug %}" class="btn">
+      ✏️ Edit
+    </a>
+
+    {% if page.visibility == "team" %}
+      <form action="{% url 'docs:publish' page.slug %}" method="post" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit" class="btn">
+          🌐 Publish to class
+        </button>
+      </form>
+    {% endif %}
+
+  {% else %}
+    {# 2) Team members: can always edit their team’s page, even after publish #}
+    {% if user.is_authenticated and user.profile.team and page.team == user.profile.team %}
+      <a href="{% url 'docs:edit' page.slug %}" class="btn">
+        ✏️ Edit
+      </a>
+
+      {# Optional: only staff can publish; team just sees a note when already published #}
+      {% if page.visibility == "class" %}
+        <span style="font-size:.9rem;color:#94a3b8;">
+          Visible to the whole class. Instructors can adjust visibility if needed.
+        </span>
+      {% endif %}
+    {% endif %}
   {% endif %}
-{% endif %}
+</div>
+
 {% endblock %}
