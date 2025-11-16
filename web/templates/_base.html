@@ -12,6 +12,9 @@
     <a href="/docs/">Docs</a>
     <a href="/policies/">Policies</a>
     <a href="/diagrams/">Diagrams</a>
+    {% if FOSSFLOW_URL %}
+        <a href="{{ FOSSFLOW_URL }}" target="_blank" rel="noopener">Fossflow</a>
+    {% endif %}
     {% if user.is_staff %}
       <a href="/grading/">Grading</a>
     {% endif %}

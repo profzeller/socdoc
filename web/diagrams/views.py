@@ -3,61 +3,22 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import Http404
 from django.contrib import messages
+from django.conf import settings
 
 from .models import Diagram
 from .forms import DiagramForm
+from accounts.models import Team
 
 
-# -------------------------
-# Helpers
-# -------------------------
-
+# -------- Helper to get the accounts.Team --------
 def get_user_team(user):
-    """Return the accounts.Team for this user, or None."""
+    """
+    Return the accounts.Team for this user, or None.
+    Uses the Profile.team relationship we use everywhere else
+    (like the navbar).
+    """
     prof = getattr(user, "profile", None)
     return getattr(prof, "team", None) if prof else None
-
-
-def can_view_diagram(user, diagram: Diagram) -> bool:
-    """
-    Centralized permission check for viewing a diagram.
-
-    - Approved + class/global => anyone can view
-    - team-only or unapproved => only staff, owner, or team members
-    """
-    # Staff can always see
-    if user.is_authenticated and user.is_staff:
-        return True
-
-    # If not approved yet (draft)
-    if not diagram.approved:
-        if not user.is_authenticated:
-            return False
-        if user == diagram.owner:
-            return True
-        user_team = get_user_team(user)
-        if diagram.team and user_team == diagram.team:
-            return True
-        return False
-
-    # Approved: handle by visibility
-    if diagram.visibility in ("class", "global"):
-        # visible to everyone once published to class/global
-        return True
-
-    # team-only visibility
-    if diagram.visibility == "team":
-        if not user.is_authenticated:
-            return False
-        if user == diagram.owner:
-            return True
-        user_team = get_user_team(user)
-        if diagram.team and user_team == diagram.team:
-            return True
-        return False
-
-    # Fallback
-    return False
 
 
 def can_edit_diagram(user, diagram: Diagram) -> bool:
@@ -66,7 +27,6 @@ def can_edit_diagram(user, diagram: Diagram) -> bool:
     - staff
     - owner
     - any member of the diagram's team
-    (Even after it's published to class, team + staff can still edit.)
     """
     if not user.is_authenticated:
         return False
@@ -80,30 +40,62 @@ def can_edit_diagram(user, diagram: Diagram) -> bool:
     return False
 
 
-# -------------------------
-# Views
-# -------------------------
+def can_view_diagram(user, diagram: Diagram) -> bool:
+    """
+    View rules:
+    - Approved + class/global: anyone can view (even anon).
+    - Team-only or unapproved: only owner, team members, or staff.
+    """
+    # Staff can always see
+    if user.is_authenticated and user.is_staff:
+        return True
+
+    # Unapproved
+    if not diagram.approved:
+        if not user.is_authenticated:
+            return False
+        if can_edit_diagram(user, diagram):
+            return True
+        return False
+
+    # Approved: handle by visibility
+    if diagram.visibility in ("class", "global"):
+        return True
+
+    if diagram.visibility == "team":
+        if not user.is_authenticated:
+            return False
+        if can_edit_diagram(user, diagram):
+            return True
+        return False
+
+    return False
+
 
 def diagram_list(request):
     """
     Show:
-      - All approved diagrams with visibility class/global for everyone.
-      - If user is on a team, also show their team's diagrams (drafts/team-only).
+      - All approved class/global diagrams to everyone.
+      - Team-only / draft diagrams for the current user's team (if any).
     """
-    # published diagrams (visible to class/global)
+
+    # Approved diagrams visible to the whole class/global
     published = Diagram.objects.filter(
         approved=True,
         visibility__in=["class", "global"],
     ).order_by("title")
 
-    user_team = get_user_team(request.user) if request.user.is_authenticated else None
-
+    user_team = None
     team_diagrams = []
-    if user_team:
-        team_diagrams = (
-            Diagram.objects.filter(team=user_team)
-            .order_by("-updated_at")
-        )
+
+    if request.user.is_authenticated:
+        user_team = get_user_team(request.user)
+        if user_team:
+            # Team’s own diagrams (including non-approved or team-only)
+            team_diagrams = (
+                Diagram.objects.filter(team=user_team)
+                .order_by("title")
+            )
 
     return render(
         request,
@@ -116,8 +108,8 @@ def diagram_list(request):
     )
 
 
-def diagram_detail(request, pk):
-    diagram = get_object_or_404(Diagram, pk=pk)
+def diagram_detail(request, slug):
+    diagram = get_object_or_404(Diagram, slug=slug)
 
     if not can_view_diagram(request.user, diagram):
         raise Http404("Diagram not found")
@@ -127,10 +119,6 @@ def diagram_detail(request, pk):
 
 @login_required
 def diagram_create(request):
-    """
-    Create a new diagram for the current user's team.
-    Diagrams start as team-only drafts; instructor can later approve/publish.
-    """
     user_team = get_user_team(request.user)
 
     if request.method == "POST":
@@ -138,25 +126,29 @@ def diagram_create(request):
         if form.is_valid():
             obj = form.save(commit=False)
             obj.owner = request.user
-            obj.team = user_team   # may be None if user isn't on a team
+            obj.team = user_team  # may be None
             obj.visibility = "team"
             obj.approved = False
             obj.save()
             messages.success(request, "Diagram created for your team.")
-            return redirect("diagrams:detail", pk=obj.pk)
+            return redirect("diagrams:detail", slug=obj.slug)
     else:
         form = DiagramForm()
 
-    return render(request, "diagrams/edit.html", {"form": form, "diagram": None})
+    return render(
+        request,
+        "diagrams/edit.html",
+        {
+            "form": form,
+            "diagram": None,
+            "fossflow_url": getattr(settings, "FOSSFLOW_URL", ""),
+        },
+    )
 
 
 @login_required
-def diagram_edit(request, pk):
-    """
-    Edit an existing diagram.
-    Staff, owner, or team members may edit (even after publish).
-    """
-    diagram = get_object_or_404(Diagram, pk=pk)
+def diagram_edit(request, slug):
+    diagram = get_object_or_404(Diagram, slug=slug)
 
     if not can_edit_diagram(request.user, diagram):
         raise Http404("Diagram not found")
@@ -166,25 +158,30 @@ def diagram_edit(request, pk):
         if form.is_valid():
             form.save()
             messages.success(request, "Diagram updated.")
-            return redirect("diagrams:detail", pk=diagram.pk)
+            return redirect("diagrams:detail", slug=diagram.slug)
     else:
         form = DiagramForm(instance=diagram)
 
-    return render(request, "diagrams/edit.html", {"form": form, "diagram": diagram})
+    return render(
+        request,
+        "diagrams/edit.html",
+        {
+            "form": form,
+            "diagram": diagram,
+            "fossflow_url": getattr(settings, "FOSSFLOW_URL", ""),
+        },
+    )
 
 
 @login_required
-def diagram_publish(request, pk):
+def diagram_publish(request, slug):
     """
     Publish a team diagram to the whole class.
     - Staff can publish any diagram.
-    - Team members (owner or same team) can publish their team’s diagram.
-
-    This sets visibility="class" and approved=True.
+    - Team members can publish their own team’s diagram.
     """
-    diagram = get_object_or_404(Diagram, pk=pk)
+    diagram = get_object_or_404(Diagram, slug=slug)
 
-    # Only staff OR members of the diagram's team may publish
     if not request.user.is_staff:
         user_team = get_user_team(request.user)
         if not (diagram.team and user_team == diagram.team):
@@ -195,9 +192,8 @@ def diagram_publish(request, pk):
         diagram.approved = True
         diagram.save()
         messages.success(request, "Diagram has been published to the class.")
-        return redirect("diagrams:detail", pk=diagram.pk)
+        return redirect("diagrams:detail", slug=diagram.slug)
 
-    # Simple confirmation page
     return render(
         request,
         "diagrams/publish_confirm.html",

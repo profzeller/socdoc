@@ -6,26 +6,24 @@ from .models import Diagram
 
 
 class DiagramForm(forms.ModelForm):
-    """
-    Form for creating/updating a Diagram.
-
-    Rules:
-    - title: required
-    - At least one of (image, external_url) should be provided.
-    - notes is Markdown.
-    """
-
     class Meta:
         model = Diagram
         fields = ["title", "image", "external_url", "notes"]
         widgets = {
-            "title": forms.TextInput(attrs={"placeholder": "e.g. SOC Network Diagram"}),
-            "external_url": forms.URLInput(
-                attrs={"placeholder": "Link to Lucidchart / draw.io / Excalidraw (optional)"}
-            ),
             "notes": forms.Textarea(
-                attrs={"rows": 12, "placeholder": "Describe the diagram, flows, assumptions, etc. (Markdown)"}
+                attrs={
+                    "rows": 10,
+                    "placeholder": "Describe data flows, trust boundaries, assumptions, etc. (Markdown).",
+                }
             ),
+            "external_url": forms.URLInput(
+                attrs={
+                    "placeholder": "Paste your Fossflow / draw.io / Lucidchart link here",
+                }
+            ),
+        }
+        labels = {
+            "external_url": "External diagram link (Fossflow, draw.io, etc.)",
         }
 
     def clean(self):

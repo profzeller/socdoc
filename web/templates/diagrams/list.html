@@ -2,70 +2,76 @@
 {% block title %}Diagrams{% endblock %}
 
 {% block content %}
-<h1>Diagrams</h1>
+<h1>Architecture Diagrams</h1>
 
-<p>
-  This area is for network / SOC architecture diagrams.
-  Teams can maintain their own diagrams and optionally publish them to the class.
-</p>
-
-{# Team section: visible only if user is on a team #}
-{% if user.is_authenticated and user_team %}
-  <section style="margin-top:1.5rem;">
-    <h2>Your Team’s Diagrams ({{ user_team.name }})</h2>
-    <p>
-      <a href="{% url 'diagrams:create' %}" class="btn">➕ New diagram</a>
+{# --- Team status banner --- #}
+{% if request.user.is_authenticated %}
+  {% if user_team %}
+    <p style="color:#64748b;font-size:0.95rem;">
+      You are on team <strong>{{ user_team.name }}</strong>.
     </p>
+  {% else %}
+    <p style="color:#b91c1c;font-size:0.95rem;">
+      You are not assigned to a team yet. Ask your instructor to add you
+      so your diagrams can be associated with the right team.
+    </p>
+  {% endif %}
+{% endif %}
 
-    {% if team_diagrams %}
-      <ul>
-        {% for d in team_diagrams %}
-          <li>
-            <a href="{% url 'diagrams:detail' d.pk %}">{{ d.title }}</a>
-            {% if d.approved %}
-              <span class="badge badge-success" style="margin-left:0.35rem;">
-                Published
-              </span>
-            {% else %}
-              <span class="badge" style="margin-left:0.35rem;background:#e5e7eb;color:#374151;">
-                Draft / team-only
-              </span>
-            {% endif %}
-          </li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p style="color:#64748b;">
-        Your team doesn’t have any diagrams yet. Start by creating one.
-      </p>
-    {% endif %}
-  </section>
-{% elif user.is_authenticated %}
-  <p style="margin-top:1rem;color:#64748b;">
-    You are not currently assigned to a team. Ask your instructor if this seems wrong.
+{# Button to create (only makes sense if logged in) #}
+{% if request.user.is_authenticated %}
+  <p style="margin-top:0.75rem;">
+    <a href="{% url 'diagrams:create' %}" class="btn">
+      ➕ New diagram
+    </a>
   </p>
 {% endif %}
 
-<hr style="margin:2rem 0; border:none; border-top:1px solid #e2e8f0;" />
+<hr style="margin:1.25rem 0; border:none; border-top:1px solid #e2e8f0;">
 
-<section>
-  <h2>Class Diagrams</h2>
-  {% if published %}
+{# --- Team diagrams (only shown if user has a team) --- #}
+{% if user_team %}
+  <h2>Your team diagrams</h2>
+
+  {% if team_diagrams %}
     <ul>
-      {% for d in published %}
+      {% for d in team_diagrams %}
         <li>
-          <a href="{% url 'diagrams:detail' d.pk %}">{{ d.title }}</a>
-          {% if d.team %}
-            <span style="font-size:.85rem;color:#0f766e;">
-              (Team: {{ d.team.name }})
+          <a href="{% url 'diagrams:detail' d.slug %}">{{ d.title }}</a>
+          {% if d.visibility == "team" %}
+            <span class="badge badge-success" style="background:#0f766e;margin-left:0.35rem;">
+              Team-only
+            </span>
+          {% elif d.visibility == "class" %}
+            <span class="badge" style="background:#1d4ed8;color:white;margin-left:0.35rem;">
+              Class
             </span>
           {% endif %}
         </li>
       {% endfor %}
     </ul>
   {% else %}
-    <p>No diagrams have been published to the class yet.</p>
+    <p>No diagrams created for your team yet.</p>
   {% endif %}
-</section>
+{% endif %}
+
+{# --- Published class/global diagrams visible to everyone --- #}
+<h2 style="margin-top:1.5rem;">Class diagrams</h2>
+{% if published %}
+  <ul>
+    {% for d in published %}
+      <li>
+        <a href="{% url 'diagrams:detail' d.slug %}">{{ d.title }}</a>
+        {% if d.team %}
+          <span style="color:#0f766e;font-size:0.85rem;">
+            (Team: {{ d.team.name }})
+          </span>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>No published diagrams yet.</p>
+{% endif %}
 
 {% endblock %}

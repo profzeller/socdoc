@@ -151,3 +151,5 @@ SOCIALACCOUNT_FORMS = {
     "signup": "accounts.forms.SocialClassCodeSignupForm",
 }
 ACCOUNT_SESSION_REMEMBER = True    # nicer “stay logged in” behavior
+
+FOSSFLOW_URL = os.environ.get("FOSSFLOW_URL", "http://fossflow")

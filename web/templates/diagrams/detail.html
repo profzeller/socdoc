@@ -28,11 +28,15 @@
 
 {# Diagram image / link #}
 {% if diagram.image %}
-  <div style="margin:1rem 0;">
+  <figure style="margin:1rem 0;">
     <img src="{{ diagram.image.url }}" alt="{{ diagram.title }}"
-         style="max-width:100%;height:auto;border-radius:0.5rem;border:1px solid #e2e8f0;">
-  </div>
+         style="max-width:100%;border-radius:0.5rem;border:1px solid #e2e8f0;">
+    <figcaption style="font-size:.85rem;color:#64748b;margin-top:0.25rem;">
+      Diagram uploaded by {{ diagram.owner.username }}
+    </figcaption>
+  </figure>
 {% endif %}
+
 
 {% if diagram.external_url %}
   <p>
