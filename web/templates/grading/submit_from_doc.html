@@ -1,0 +1,39 @@
+{% extends "_base.html" %}
+{% block title %}Submit "{{ page.title }}" for grading{% endblock %}
+
+{% block content %}
+<h1>Submit for Grading</h1>
+
+<p style="color:#64748b;font-size:.95rem;margin-bottom:1rem;">
+  You’re submitting documentation:
+  <strong>{{ page.title }}</strong>
+  {% if page.team %}
+    for team <strong>{{ page.team.name }}</strong>.
+  {% else %}
+    (no team assigned)
+  {% endif %}
+</p>
+
+<form method="post">
+  {% csrf_token %}
+  {{ form.non_field_errors }}
+
+  <p>
+    {{ form.milestone.label_tag }}<br>
+    {{ form.milestone }}
+    {% if form.milestone.help_text %}
+      <br><small style="color:#94a3b8;">{{ form.milestone.help_text }}</small>
+    {% endif %}
+    {% if form.milestone.errors %}
+      <br><span style="color:#b91c1c;">{{ form.milestone.errors|join:", " }}</span>
+    {% endif %}
+  </p>
+
+  <button type="submit">Submit</button>
+  <a href="{% url 'docs:detail' page.slug %}" style="margin-left:.75rem;">Cancel</a>
+</form>
+
+<p style="margin-top:1.5rem;font-size:.9rem;color:#94a3b8;">
+  After submitting, instructors will see this doc linked on your submission for the chosen milestone.
+</p>
+{% endblock %}

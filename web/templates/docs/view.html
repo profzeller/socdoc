@@ -33,9 +33,9 @@
 </div>
 
 {# ACTIONS #}
-<div style="margin-top:1.25rem; display:flex; gap:.75rem; flex-wrap:wrap;">
+<div style="margin-top:1.5rem; display:flex; gap:.75rem; flex-wrap:wrap; align-items:center;">
 
-  {# 1) Staff: can always edit + can publish when team-only #}
+  {# 1) Staff: always edit + can publish #}
   {% if user.is_staff %}
     <a href="{% url 'docs:edit' page.slug %}" class="btn">
       ✏️ Edit
@@ -51,20 +51,82 @@
     {% endif %}
 
   {% else %}
-    {# 2) Team members: can always edit their team’s page, even after publish #}
+    {# 2) Team members: always edit their own team’s doc, even if published #}
     {% if user.is_authenticated and user.profile.team and page.team == user.profile.team %}
       <a href="{% url 'docs:edit' page.slug %}" class="btn">
         ✏️ Edit
       </a>
 
-      {# Optional: only staff can publish; team just sees a note when already published #}
       {% if page.visibility == "class" %}
         <span style="font-size:.9rem;color:#94a3b8;">
-          Visible to the whole class. Instructors can adjust visibility if needed.
+          Visible to the whole class.
         </span>
       {% endif %}
     {% endif %}
   {% endif %}
+
+  {# 3) Submit for milestone - only if user belongs to same team #}
+  {% if user.is_authenticated and user.profile.team and page.team == user.profile.team %}
+    <a href="{% url 'grading:submit_from_doc' page.slug %}" class="btn">
+      📤 Submit for Milestone
+    </a>
+  {% endif %}
+
 </div>
+
+{# SUBMISSION HISTORY #}
+{% if user.is_authenticated and submission_rows %}
+  <section style="margin-top:2rem;">
+    <h2 style="font-size:1.1rem;margin-bottom:.5rem;">Submission History</h2>
+    <p style="color:#64748b;font-size:.9rem;margin-bottom:.75rem;">
+      {% if user.is_staff %}
+        Showing all submissions linked to this page.
+      {% else %}
+        Showing your team’s submissions for this page.
+      {% endif %}
+    </p>
+
+    <table style="width:100%;border-collapse:collapse;font-size:.95rem;">
+      <thead>
+        <tr style="text-align:left;border-bottom:1px solid #e5e7eb;">
+          <th style="padding:.35rem .25rem;">Milestone</th>
+          <th style="padding:.35rem .25rem;">Submitted By</th>
+          <th style="padding:.35rem .25rem;">Submitted At</th>
+          <th style="padding:.35rem .25rem;">Score</th>
+          <th style="padding:.35rem .25rem;">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for sub in submission_rows %}
+          <tr style="border-bottom:1px solid #e5e7eb;">
+            <td style="padding:.35rem .25rem;">{{ sub.milestone.title }}</td>
+            <td style="padding:.35rem .25rem;">{{ sub.student.username }}</td>
+            <td style="padding:.35rem .25rem;">{{ sub.submitted_at|date:"Y-m-d H:i" }}</td>
+            <td style="padding:.35rem .25rem;">
+              {% if sub.graded %}
+                {{ sub.score }}
+              {% else %}
+                —
+              {% endif %}
+            </td>
+            <td style="padding:.35rem .25rem;">
+              {% if sub.graded %}
+                ✅ Graded
+              {% else %}
+                ⏳ Pending
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="5" style="padding:.5rem .25rem;color:#94a3b8;">
+              No submissions yet.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+{% endif %}
 
 {% endblock %}
