@@ -1,9 +1,12 @@
 from django.urls import path
-from .views import policy_list, policy_detail, policy_create
+from . import views
 
 app_name = "policies"
+
 urlpatterns = [
-    path("", policy_list, name="list"),
-    path("new/", policy_create, name="new"),
-    path("<slug:slug>/", policy_detail, name="detail"),
+    path("", views.policy_list, name="list"),
+    path("new/", views.policy_create, name="create"),
+    path("<slug:slug>/", views.policy_detail, name="detail"),
+    path("<slug:slug>/edit/", views.policy_edit, name="edit"),
+    path("<slug:slug>/publish/", views.policy_publish, name="publish"),
 ]

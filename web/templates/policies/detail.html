@@ -1,11 +1,57 @@
-<h1>{{ policy.title }}</h1>
-<p><strong>Category:</strong> {{ policy.get_category_display }} • <strong>Version:</strong> {{ policy.version }}</p>
+{% extends "_base.html" %}
+{% block title %}{{ policy.title }}{% endblock %}
 
-{% if not policy.approved %}
-  <p style="padding:.5rem 1rem;background:#fff7ed;border:1px solid #fdba74;border-radius:.5rem;">
-    Pending approval — only you and instructors can see this.
+{% block content %}
+<h1>{{ policy.title }}</h1>
+
+<p style="color:#64748b;font-size:.9rem;margin-bottom:.5rem;">
+  <strong>Category:</strong> {{ policy.get_category_display }}
+  · <strong>Version:</strong> {{ policy.version }}
+  {% if policy.team %}
+    · <strong>Team:</strong> {{ policy.team.name }}
+  {% endif %}
+  {% if policy.owner %}
+    · <strong>Owner:</strong> {{ policy.owner.username }}
+  {% endif %}
+</p>
+
+<p style="color:#94a3b8;font-size:.85rem;margin-bottom:1rem;">
+  Updated {{ policy.updated_at|date:"Y-m-d H:i" }}
+</p>
+
+{% if not policy.approved or policy.visibility == "team" %}
+  <p class="alert alert-warning">
+    {% if not policy.approved %}
+      This policy is a <strong>draft</strong>. Only your team and instructors can see it.
+    {% elif policy.visibility == "team" %}
+      This policy is currently <strong>team-only</strong>. Publish it to share with the whole class.
+    {% endif %}
   </p>
 {% endif %}
 
-<article>{{ policy.html|safe }}</article>
-<p><a href="{% url 'policies:list' %}">← Back</a></p>
+<article class="markdown-body">
+  {{ policy.html|safe }}
+</article>
+
+<div style="margin-top:1.25rem;display:flex;gap:.75rem;flex-wrap:wrap;">
+  <a href="{% url 'policies:list' %}" class="btn">
+    ← Back to Policies
+  </a>
+
+  {% if can_edit %}
+    <a href="{% url 'policies:edit' policy.slug %}" class="btn">
+      ✏️ Edit
+    </a>
+  {% endif %}
+
+  {% if can_publish and policy.visibility != "class" %}
+    <form action="{% url 'policies:publish' policy.slug %}" method="post" style="display:inline;">
+      {% csrf_token %}
+      <button type="submit" class="btn">
+        🌐 Publish to class
+      </button>
+    </form>
+  {% endif %}
+</div>
+
+{% endblock %}

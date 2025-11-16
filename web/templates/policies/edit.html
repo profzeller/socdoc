@@ -1,7 +1,133 @@
-<h1>New Policy / Procedure</h1>
+{% extends "_base.html" %}
+{% block title %}
+  {% if policy %}Edit Policy{% else %}New Policy / Procedure{% endif %}
+{% endblock %}
+
+{% block content %}
+
+<h1>
+  {% if policy %}
+    Edit Policy / Procedure
+  {% else %}
+    New Policy / Procedure
+  {% endif %}
+</h1>
+
 <form method="post">
   {% csrf_token %}
-  {{ form.as_p }}
-  <p>Write the policy/procedure in Markdown (include steps, roles, escalation paths, etc.).</p>
-  <button type="submit">Submit for review</button>
+  {{ form.non_field_errors }}
+
+  <p>
+    {{ form.category.label_tag }}
+    {{ form.category }}
+  </p>
+
+  <p>
+    {{ form.title.label_tag }}
+    {{ form.title }}
+  </p>
+
+  <p>
+    {{ form.version.label_tag }}
+    {{ form.version }}
+    <small style="color:#64748b;">Version number (e.g., 1.0)</small>
+  </p>
+
+  {# ---------- MARKDOWN EDITOR ---------- #}
+
+  <div class="md-editor">
+    <div class="md-editor-main">
+      <div class="md-editor-header">
+        <label for="{{ form.content.id_for_label }}">
+          <strong>Policy / Procedure (Markdown)</strong>
+        </label>
+
+        {# Optional preview toggle (you already have styling for this!) #}
+        <button type="button" class="md-preview-toggle"
+                onclick="document.querySelector('.md-preview').classList.toggle('hidden');">
+          Toggle Preview
+        </button>
+      </div>
+
+      <div class="md-toolbar">
+        <!-- Optional toolbar buttons if you choose to hook them up later -->
+        <button type="button" onclick="insertText('**bold**')">B</button>
+        <button type="button" onclick="insertText('_italic_')">I</button>
+        <button type="button" onclick="insertText('`code`')">Code</button>
+        <button type="button" onclick="insertText('- list item')">List</button>
+      </div>
+
+      {{ form.content }}
+
+      <p class="auth-help" style="margin-top: 0.25rem;">
+        Write the full policy or procedure in <strong>Markdown</strong>, including:
+        <br>• Purpose & scope
+        <br>• Roles & responsibilities
+        <br>• Steps / workflows
+        <br>• Escalation or exception paths
+      </p>
+    </div>
+
+    <div class="md-preview hidden">
+      <div class="md-preview-inner" id="md-preview-content">
+        <!-- Live preview updated via JS below -->
+      </div>
+    </div>
+  </div>
+
+  {# ---------- SUBMIT BUTTON ---------- #}
+  <button type="submit">
+    {% if policy %}Save Changes{% else %}Submit for Review{% endif %}
+  </button>
 </form>
+
+
+<script>
+/* -------------------------------
+   OPTIONAL LIVE MARKDOWN PREVIEW
+-------------------------------- */
+function updatePreview() {
+  fetch("/markdownx/markdownify/", {
+    method: "POST",
+    headers: {
+      "X-CSRFToken": "{{ csrf_token }}",
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: "content=" + encodeURIComponent(document.getElementById("id_content").value),
+  })
+  .then((response) => response.text())
+  .then((html) => {
+    document.getElementById("md-preview-content").innerHTML = html;
+  });
+}
+
+document.getElementById("id_content").addEventListener("input", updatePreview);
+updatePreview();
+
+/* -------------------------------
+   BASIC TOOLBAR BUTTON INSERTION
+-------------------------------- */
+function insertText(text) {
+  const textarea = document.getElementById("id_content");
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+  const original = textarea.value;
+
+  textarea.value =
+    original.substring(0, start) +
+    text +
+    original.substring(end);
+
+  textarea.focus();
+  textarea.selectionStart = start + text.length;
+  textarea.selectionEnd = start + text.length;
+
+  updatePreview();
+}
+</script>
+
+<style>
+.hidden { display: none; }
+</style>
+
+{% endblock %}

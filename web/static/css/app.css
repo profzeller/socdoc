@@ -566,3 +566,39 @@ body.dark .milestone-item {
 .btn-staff:hover {
   background: #1f2933;
 }
+
+/* Optional: nicer spacing for rendered Markdown blocks */
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3 {
+  margin-top: 1.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.markdown-body p {
+  margin: 0.4rem 0;
+}
+
+.markdown-body ul,
+.markdown-body ol {
+  margin: 0.5rem 0 0.5rem 1.25rem;
+}
+
+.markdown-body code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.9em;
+  background: rgba(148, 163, 184, 0.25);
+  padding: 0 0.2rem;
+  border-radius: 3px;
+}
+
+.markdown-body pre {
+  background: #0f172a10;
+  padding: 0.75rem;
+  border-radius: 6px;
+  overflow-x: auto;
+}
+
+body.dark .markdown-body pre {
+  background: rgba(15, 23, 42, 0.8);
+}
