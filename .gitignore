@@ -35,3 +35,4 @@ venv/
 *.coverage
 *.mypy_cache/
 *.pytest_cache/
+.aider*
